@@ -8,7 +8,9 @@
 3. db-url을 `jdbc:h2:mem:picpic`로 수정 후 실행
 
 # redis, mysql 실행
-1. /docker/docker-compose.yml 실행
+/docker/docker-compose.yml 파일 실행
+1. /docker 디렉토리로 이동
+1. 아래 명령어 실행
 ```bash
   docker-compose up -d
 ```
