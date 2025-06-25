@@ -27,7 +27,7 @@ public class WebSocketEventListener {
         Principal user = headerAccessor.getUser();
 
         if (roomId != null) {
-            redisTemplate.opsForValue().set("sessionId:"+sessionId, roomId);
+            redisTemplate.opsForValue().set("sessionId:"+sessionId+":roomId", roomId);
             redisTemplate.opsForSet().add("room:"+roomId+":sessionIds", sessionId);
 
             if(user != null) {
@@ -46,9 +46,9 @@ public class WebSocketEventListener {
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
         Principal user = headerAccessor.getUser();
         String sessionId = headerAccessor.getSessionId();
-        String roomId = redisTemplate.opsForValue().get("sessionId:"+sessionId).toString();
+        String roomId = redisTemplate.opsForValue().get("sessionId:"+sessionId+":roomId").toString();
 
-        redisTemplate.delete("sessionId:"+sessionId);
+        redisTemplate.delete("sessionId:"+sessionId+":roomId");
         redisTemplate.opsForSet().remove("room:"+roomId+":sessionIds", sessionId);
 
         if(user != null) {
