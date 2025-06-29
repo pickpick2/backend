@@ -26,18 +26,20 @@ public class WebSocketEventListener {
         String roomId = headerAccessor.getFirstNativeHeader("roomId");
         Principal user = headerAccessor.getUser();
 
-        if (roomId != null) {
-            redisTemplate.opsForValue().set("sessionId:"+sessionId+":roomId", roomId);
-            redisTemplate.opsForSet().add("room:"+roomId+":sessionIds", sessionId);
-
-            if(user != null) {
-                redisTemplate.opsForSet().add("room:"+roomId+":userNames", user.getName());
-                redisTemplate.opsForValue().set("sessionId:"+sessionId+":userName", user.getName());
-            }
-
-            headerAccessor.getSessionAttributes().put("roomId", roomId);
-            log.info("[STOMP] CONNECT roomId: {}, sessionId: {}", roomId, sessionId);
+        if(roomId == null) {
+            return;
         }
+
+        redisTemplate.opsForValue().set("sessionId:"+sessionId+":roomId", roomId);
+        redisTemplate.opsForSet().add("room:"+roomId+":sessionIds", sessionId);
+
+        if(user != null) {
+            redisTemplate.opsForSet().add("room:"+roomId+":userNames", user.getName());
+            redisTemplate.opsForValue().set("sessionId:"+sessionId+":userName", user.getName());
+        }
+
+        headerAccessor.getSessionAttributes().put("roomId", roomId);
+        log.info("[STOMP] CONNECT roomId: {}, sessionId: {}", roomId, sessionId);
     }
 
     @EventListener
