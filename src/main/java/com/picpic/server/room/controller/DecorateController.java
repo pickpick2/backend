@@ -4,6 +4,8 @@ import java.security.Principal;
 
 import com.picpic.server.room.dto.DecorateStickerRequestDTO;
 import com.picpic.server.room.dto.DecorateStickerResponseDTO;
+import com.picpic.server.room.dto.DecorateTextRequestDTO;
+import com.picpic.server.room.dto.DecorateTextResponseDTO;
 import com.picpic.server.room.service.DecorateService;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -30,15 +32,16 @@ public class DecorateController {
 
     @MessageMapping("/decor/sticker")
     public void sticker(Principal principal, DecorateStickerRequestDTO stickerRequestDTO) {
-
         Long memberId = Long.parseLong(principal.getName());
         DecorateStickerResponseDTO res = decorateService.sticker(memberId,stickerRequestDTO);
-        messagingTemplate.convertAndSend("/broadcast/" + stickerRequestDTO.sessionCode(), res);
+        messagingTemplate.convertAndSend("/topic/" + stickerRequestDTO.sessionCode(), res);
     }
 
-//    @MessageMapping("/decor/text")
-//    public void text(Principal principal) {
-//        Long memberId = Long.parseLong(principal.getName());
-//    }
+    @MessageMapping("/decor/text")
+    public void text(Principal principal, DecorateTextRequestDTO textRequestDTO) {
+        Long memberId = Long.parseLong(principal.getName());
+        DecorateTextResponseDTO res = decorateService.putText(memberId,textRequestDTO);
+        messagingTemplate.convertAndSend("/topic/" + textRequestDTO.sessionCode(), res);
+    }
 
 }
