@@ -3,8 +3,7 @@ package com.picpic.server.room.service;
 
 import com.picpic.server.common.exception.ApiException;
 import com.picpic.server.common.exception.ErrorCode;
-import com.picpic.server.room.dto.DecorateStickerRequestDTO;
-import com.picpic.server.room.dto.DecorateStickerResponseDTO;
+import com.picpic.server.room.dto.*;
 import com.picpic.server.room.entity.Member;
 import com.picpic.server.room.entity.Participant;
 import com.picpic.server.room.entity.Session;
@@ -25,6 +24,7 @@ public class DecorateService {
     private final ParticipantRepository participantRepository;
     private final MemberRepository memberRepository;
     private final SessionRepository sessionRepository;
+    private final TextRedisRepository textRedisRepository;
 
 
     @Transactional
@@ -56,6 +56,43 @@ public class DecorateService {
 
         return res;
 
+    }
+
+    @Transactional
+    public DecorateTextResponseDTO putText(Long memberId, DecorateTextRequestDTO req) {
+        Member member = memberRepository.findById(memberId).orElseThrow(
+                () -> new ApiException(ErrorCode.NOT_FOUND_MEMBER)
+        );
+
+        Session session = sessionRepository.findById(req.sessionId()).orElseThrow(
+                () -> new ApiException(ErrorCode.NOT_FOUND_SESSION)
+        );
+
+        Participant participant = participantRepository.findBySessionAndMember(session, member).orElseThrow(
+                () -> new ApiException(ErrorCode.NOT_PARTICIPANT)
+        );
+
+        // Redis에 저장
+        TextRedisDTO dto = new TextRedisDTO(
+                req.text(),
+                req.font(),
+                req.color(),
+                req.points().stream()
+                        .map(p -> new TextRedisDTO.Point(p.x(), p.y()))
+                        .toList()
+        );
+        textRedisRepository.saveText(req.sessionId(), req.text(), req.font(), req.color(), memberId, req.points());
+
+        DecorateTextResponseDTO res = new DecorateTextResponseDTO(
+                dto.text(),
+                dto.font(),
+                dto.color(),
+                dto.points().stream()
+                        .map(p -> new DecorateTextResponseDTO.Point(p.x(), p.y()))
+                        .toList()
+        );
+
+        return res;
     }
 
 }
