@@ -1,8 +1,8 @@
 ---
-name: "\U0001F9F1 chore"
+name: "\U0001FE0F chore"
 about: 빌드 설정, 의존성 관리 등 잡일을 처리합니다.
-title: "\U0001F9F1 chore: 제목"
-labels: "\U0001F9F1 chore"
+title: "\U0001FE0F chore: 제목"
+labels: "\U0001FE0F chore"
 assignees: ''
 
 ---
