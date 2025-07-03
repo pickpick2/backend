@@ -1,5 +1,6 @@
 package com.picpic.server.common.config.WebSocket.interceptor;
 
+import com.picpic.server.common.security.MemberPrincipalDetail;
 import com.picpic.server.room.entity.RoomEntity;
 import com.picpic.server.room.repository.RoomRepository;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +28,13 @@ public class RoomValidationInterceptor implements ChannelInterceptor {
         StompCommand command = accessor.getCommand();
 
         if (StompCommand.CONNECT.equals(command)) {
+            String token = accessor.getFirstNativeHeader("Authorization");
+
+            if (token != null) {
+                // TODO: Jwt 유틸 개발 이후, 이 부분에 토큰 안에 담긴 내용으로 principal 생성해야함
+                MemberPrincipalDetail principal = new MemberPrincipalDetail(Long.parseLong(token));
+                accessor.setUser(principal);
+            }
             String roomId = accessor.getFirstNativeHeader("roomId");
 
             if (roomId != null) {
@@ -34,7 +42,6 @@ public class RoomValidationInterceptor implements ChannelInterceptor {
                     validateRoomExist(roomId);
                 } catch (Exception e) {
                     log.warn("[STOMP] CONNECT rejected - Room not found: {}", roomId);
-                    throw new IllegalArgumentException("존재하지 않는 방입니다: " + roomId);
                 }
             }
         }
