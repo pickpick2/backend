@@ -8,6 +8,8 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Getter
 @Builder
@@ -22,7 +24,7 @@ public class RoomHistoryEntity {
     private Long memberId;
 
     @CreatedDate
-    private Long createdAt;
+    private LocalDateTime createdAt;
 
     @Enumerated(EnumType.STRING)
     private RoomHistoryStatus roomHistoryStatus;

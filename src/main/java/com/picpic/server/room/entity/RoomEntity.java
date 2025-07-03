@@ -11,6 +11,6 @@ import org.springframework.data.redis.core.RedisHash;
 public class RoomEntity {
 
     @Id
-    private String id;
+    private Long roomId;
     private String memberId;
 }
