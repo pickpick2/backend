@@ -26,7 +26,7 @@ public class CreateRoomService implements CreateRoomUseCase {
         String roomId = UUID.randomUUID().toString();
 
         roomRepository.save(RoomEntity.builder()
-                        .id(roomId)
+                        .roomId(IdUtils.generateId())
                         .memberId(String.valueOf(memberId))
                         .build());
 
