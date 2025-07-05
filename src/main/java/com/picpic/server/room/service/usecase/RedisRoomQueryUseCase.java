@@ -4,6 +4,7 @@ import com.picpic.server.room.domain.RoomMember;
 
 import java.util.List;
 
-public interface GetRoomMemberUseCase {
-    List<RoomMember> getRoomMember(Long memberId, String roomId);
+public interface RedisRoomQueryUseCase {
+    List<RoomMember> searchMember(String roomId);
+    boolean exist(String roomId);
 }

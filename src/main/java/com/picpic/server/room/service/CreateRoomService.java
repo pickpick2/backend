@@ -1,15 +1,21 @@
 package com.picpic.server.room.service;
 
+import com.picpic.server.common.security.MemberPrincipalDetail;
 import com.picpic.server.common.util.IdUtils;
-import com.picpic.server.room.entity.RoomEntity;
+import com.picpic.server.room.domain.RoomMember;
+import com.picpic.server.room.entity.RoomRedisEntity;
 import com.picpic.server.room.entity.RoomHistoryEntity;
 import com.picpic.server.room.repository.RoomHistoryRepository;
-import com.picpic.server.room.repository.RoomRepository;
+import com.picpic.server.room.repository.RoomRedisRepository;
+import com.picpic.server.room.service.redis.RedisRoomQuery;
 import com.picpic.server.room.service.usecase.CreateRoomUseCase;
+import com.picpic.server.room.service.usecase.RedisRoomCommandUseCase;
+import com.picpic.server.room.service.usecase.RoomHistoryCommandUseCase;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -17,24 +23,15 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class CreateRoomService implements CreateRoomUseCase {
 
-    private final RoomHistoryRepository roomHistoryRepository;
-    private final RoomRepository roomRepository;
+    private final RedisRoomCommandUseCase redisRoomCommandUseCase;
+    private final RoomHistoryCommandUseCase roomHistoryCommandUseCase;
 
     @Override
-    public String createRoom(long memberId) {
-
+    public String createRoom(MemberPrincipalDetail creatorPrinciple) {
         String roomId = UUID.randomUUID().toString();
 
-        roomRepository.save(RoomEntity.builder()
-                        .roomId(IdUtils.generateId())
-                        .memberId(String.valueOf(memberId))
-                        .build());
-
-        roomHistoryRepository.save(
-                RoomHistoryEntity.builder()
-                        .roomHistoryId(IdUtils.generateId())
-                        .memberId(memberId)
-                        .build());
+        roomHistoryCommandUseCase.create(IdUtils.generateTsid(), creatorPrinciple.memberId());
+        redisRoomCommandUseCase.create(roomId, creatorPrinciple);
 
         return roomId;
     }
