@@ -51,4 +51,16 @@ public class RedisRoomCommand implements RedisRoomCommandUseCase {
 
         roomRedisRepository.save(updatedEntity);
     }
+
+    @Override
+    public void updateRoomCapacity(String roomId, Integer roomCapacity) {
+        RoomRedisEntity roomEntity = roomRedisRepository.findById(roomId)
+                .orElseThrow(() -> new RuntimeException("Room not found. :" + roomId));
+
+        RoomRedisEntity updatedRoom = roomEntity.toBuilder()
+                .roomCapacity(roomCapacity)
+                .build();
+
+        roomRedisRepository.save(updatedRoom);
+    }
 }

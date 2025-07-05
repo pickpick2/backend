@@ -7,4 +7,5 @@ public interface RedisRoomCommandUseCase {
     void delete(String roomId);
     void addMember(String roomId, MemberPrincipalDetail memberPrincipalDetail);
     void subtractMember(String roomId, Long memberId);
+    void updateRoomCapacity(String roomId, Integer roomCapacity);
 }

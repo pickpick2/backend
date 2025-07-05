@@ -8,4 +8,5 @@ public interface RedisRoomQueryUseCase {
     List<RoomMember> searchMember(String roomId);
     boolean exist(String roomId);
     Integer getRoomCapacity(String roomId);
+    RoomMember getCreator(String roomId);
 }

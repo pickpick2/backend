@@ -36,4 +36,14 @@ public class RedisRoomQuery implements RedisRoomQueryUseCase {
 
         return roomRedisEntity.getRoomCapacity();
     }
+
+    @Override
+    public RoomMember getCreator(String roomId) {
+
+        RoomRedisEntity roomRedisEntity = roomRedisRepository
+                .findById(roomId)
+                .orElseThrow(() -> new RuntimeException("Room not found. :" + roomId));
+
+        return roomRedisEntity.getCreator();
+    }
 }
