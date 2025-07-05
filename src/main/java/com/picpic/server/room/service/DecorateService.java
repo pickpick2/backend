@@ -25,9 +25,10 @@ public class DecorateService {
     private final MemberRepository memberRepository;
     private final SessionRepository sessionRepository;
     private final TextRedisRepository textRedisRepository;
+    private final PenRedisRepository penRedisRepository;
 
 
-    @Transactional
+
     public DecorateStickerResponseDTO sticker(Long memberId, DecorateStickerRequestDTO req) {
         Member member = memberRepository.findById(memberId).orElseThrow(
                 () -> new ApiException(ErrorCode.NOT_FOUND_MEMBER)
@@ -58,7 +59,7 @@ public class DecorateService {
 
     }
 
-    @Transactional
+
     public DecorateTextResponseDTO putText(Long memberId, DecorateTextRequestDTO req) {
         Member member = memberRepository.findById(memberId).orElseThrow(
                 () -> new ApiException(ErrorCode.NOT_FOUND_MEMBER)
@@ -72,7 +73,6 @@ public class DecorateService {
                 () -> new ApiException(ErrorCode.NOT_PARTICIPANT)
         );
 
-        // Redis에 저장
         TextRedisDTO dto = new TextRedisDTO(
                 req.text(),
                 req.font(),
@@ -90,6 +90,44 @@ public class DecorateService {
                 dto.points().stream()
                         .map(p -> new DecorateTextResponseDTO.Point(p.x(), p.y()))
                         .toList()
+        );
+
+        return res;
+    }
+
+//    draw
+    public DecoratePenResponseDTO draw(Long memberId, DecoratePenRequestDTO req) {
+        Member member = memberRepository.findById(memberId).orElseThrow(
+                () -> new ApiException(ErrorCode.NOT_FOUND_MEMBER)
+        );
+
+        Session session = sessionRepository.findById(req.sessionId()).orElseThrow(
+                () -> new ApiException(ErrorCode.NOT_FOUND_SESSION)
+        );
+
+        Participant participant = participantRepository.findBySessionAndMember(session, member).orElseThrow(
+                () -> new ApiException(ErrorCode.NOT_PARTICIPANT)
+        );
+
+        PenRedisDTO dto = new PenRedisDTO(
+                req.tool(),
+                req.color(),
+                req.lineWidth(),
+                req.points().stream()
+                        .map(p -> new PenRedisDTO.Point(p.x(), p.y()))
+                        .toList()
+        );
+
+        penRedisRepository.saveStroke(req.sessionId(), memberId, dto);
+
+        DecoratePenResponseDTO res = new DecoratePenResponseDTO(
+                req.tool().name().toLowerCase(), // "pen" or "eraser"
+                req.color(),
+                req.lineWidth(),
+                req.points().stream()
+                        .map(p -> new DecoratePenResponseDTO.Point(p.x(), p.y()))
+                        .toList(),
+                req.tool() // enum 그대로 응답
         );
 
         return res;
