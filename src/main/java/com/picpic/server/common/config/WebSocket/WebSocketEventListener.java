@@ -1,5 +1,7 @@
 package com.picpic.server.common.config.WebSocket;
 
+import com.picpic.server.common.security.MemberPrincipalDetail;
+import com.picpic.server.room.service.usecase.RedisRoomCommandUseCase;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -17,6 +19,7 @@ import java.security.Principal;
 public class WebSocketEventListener {
 
     private final RedisTemplate<String, Object> redisTemplate;
+    private final RedisRoomCommandUseCase redisRoomCommand;
 
     @EventListener
     public void handleWebSocketConnectListener(SessionConnectEvent event) {
@@ -26,19 +29,23 @@ public class WebSocketEventListener {
         String roomId = headerAccessor.getFirstNativeHeader("roomId");
         Principal user = headerAccessor.getUser();
 
+        MemberPrincipalDetail memberPrincipal
+                = user instanceof MemberPrincipalDetail ? (MemberPrincipalDetail) user : null;
+
         if(roomId == null) {
-            return;
+            throw new RuntimeException("Room not found. : " + roomId);
         }
 
-        redisTemplate.opsForValue().set("sessionId:"+sessionId+":roomId", roomId);
-        redisTemplate.opsForSet().add("room:"+roomId+":sessionIds", sessionId);
-
-        if(user != null) {
-            redisTemplate.opsForSet().add("room:"+roomId+":userNames", user.getName());
-            redisTemplate.opsForValue().set("sessionId:"+sessionId+":userName", user.getName());
+        if(memberPrincipal == null) {
+            throw new RuntimeException("Member information is missing.");
         }
+
+        redisRoomCommand.addMember(roomId, memberPrincipal);
 
         headerAccessor.getSessionAttributes().put("roomId", roomId);
+
+        redisTemplate.opsForValue().set(memberPrincipal.getName()+":roomId", roomId);
+
         log.info("[STOMP] CONNECT roomId: {}, sessionId: {}", roomId, sessionId);
     }
 
@@ -48,15 +55,11 @@ public class WebSocketEventListener {
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
         Principal user = headerAccessor.getUser();
         String sessionId = headerAccessor.getSessionId();
-        String roomId = redisTemplate.opsForValue().get("sessionId:"+sessionId+":roomId").toString();
+        String roomId = redisTemplate.opsForValue().get(user.getName() + ":roomId").toString();
 
-        redisTemplate.delete("sessionId:"+sessionId+":roomId");
-        redisTemplate.opsForSet().remove("room:"+roomId+":sessionIds", sessionId);
+        redisRoomCommand.subtractMember(roomId, Long.valueOf(user.getName()));
+        redisTemplate.delete(user.getName()+":roomId");
 
-        if(user != null) {
-            redisTemplate.opsForSet().remove("room:"+roomId+":userNames", user.getName());
-            redisTemplate.delete("sessionId:"+sessionId+":userName");
-        }
         log.info("[STOMP] DISCONNECT roomId: {}, sessionId: {}", roomId, sessionId);
     }
 }
