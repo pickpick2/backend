@@ -26,6 +26,9 @@ public class RoomRedisEntity {
     @Builder.Default
     private List<RoomMember> members = new ArrayList<>();
 
+    @Builder.Default
+    private int roomCapacity = 6;
+
     public RoomRedisEntity addMember(RoomMember newMember) {
 
         List<RoomMember> updatedMembers = new ArrayList<>();

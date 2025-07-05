@@ -18,11 +18,11 @@ public class CreateRoomService implements CreateRoomUseCase {
     private final RoomHistoryCommandUseCase roomHistoryCommandUseCase;
 
     @Override
-    public String createRoom(MemberPrincipalDetail creatorPrinciple) {
+    public String createRoom(MemberPrincipalDetail creatorPrinciple, Integer roomCapacity) {
         String roomId = IdUtils.generateRoomId();
 
         roomHistoryCommandUseCase.create(IdUtils.generateTsid(), creatorPrinciple.memberId());
-        redisRoomCommandUseCase.create(roomId, creatorPrinciple);
+        redisRoomCommandUseCase.create(roomId, creatorPrinciple, roomCapacity);
 
         return roomId;
     }

@@ -32,19 +32,28 @@ public class RoomValidationInterceptor implements ChannelInterceptor {
             String token = accessor.getFirstNativeHeader("X-Test-Member-Id");
             String roomId = accessor.getFirstNativeHeader("roomId");
 
-            validateAlreadyEnter(token);
+            if (token == null || roomId == null) {
+                log.warn("[STOMP] CONNECT rejected - Missing token or roomId");
+                return null;
+            }
 
-            if (token != null && roomId != null) {
-                try {
-                    validateRoomExist(roomId);
-                    MemberPrincipalDetail principal = new MemberPrincipalDetail(
-                            Long.parseLong(token),
-                            "test nickname" //TODO
-                    );
-                    accessor.setUser(principal);
-                } catch (Exception e) {
-                    log.warn("[STOMP] CONNECT rejected - Room not found: {}", roomId);
-                }
+            try {
+                validateAlreadyEnter(token);
+                validateRoomCapacity(roomId);
+                validateRoomExist(roomId);
+
+                MemberPrincipalDetail principal = new MemberPrincipalDetail(
+                        Long.parseLong(token),
+                        "test nickname" //TODO
+                );
+
+                accessor.setUser(principal);
+
+                log.info("[STOMP] CONNECT approved - userId: {}, roomId: {}", token, roomId);
+            } catch (Exception e) {
+                log.warn("[STOMP] CONNECT rejected - {}", e.getMessage());
+
+                return null;
             }
         }
 
@@ -60,6 +69,16 @@ public class RoomValidationInterceptor implements ChannelInterceptor {
     private void validateAlreadyEnter(String userId) {
         if(redisTemplate.opsForValue().get(userId+":roomId") != null) {
             throw new RuntimeException("You are already connected to a room.");
+        }
+    }
+
+    private void validateRoomCapacity(String roomId) {
+
+        Integer roomCapacity = redisRoomQueryUseCase.getRoomCapacity(roomId);
+        Integer currentMemberNum = redisRoomQueryUseCase.searchMember(roomId).size();
+
+        if(currentMemberNum >= roomCapacity ) {
+            throw new RuntimeException("The room capacity is greater than the room capacity.");
         }
     }
 }
