@@ -3,6 +3,10 @@ package com.picpic.server.room.controller;
 import java.security.Principal;
 
 import com.picpic.server.room.dto.*;
+import com.picpic.server.room.dto.DecorateStickerRequestDTO;
+import com.picpic.server.room.dto.DecorateStickerResponseDTO;
+import com.picpic.server.room.dto.DecorateTextRequestDTO;
+import com.picpic.server.room.dto.DecorateTextResponseDTO;
 import com.picpic.server.room.service.DecorateService;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
