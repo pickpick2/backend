@@ -15,9 +15,10 @@ public class RedisRoomCommand implements RedisRoomCommandUseCase {
     private final RoomRedisRepository roomRedisRepository;
 
     @Override
-    public void create(String roomId, MemberPrincipalDetail memberPrincipal) {
+    public void create(String roomId, MemberPrincipalDetail memberPrincipal, Integer roomCapacity) {
 
         RoomRedisEntity room = RoomRedisEntity.builder()
+                .roomCapacity(roomCapacity)
                 .roomId(roomId)
                 .creator(RoomMember.from(memberPrincipal))
                 .build();

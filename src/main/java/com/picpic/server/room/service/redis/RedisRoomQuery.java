@@ -1,6 +1,7 @@
 package com.picpic.server.room.service.redis;
 
 import com.picpic.server.room.domain.RoomMember;
+import com.picpic.server.room.entity.RoomRedisEntity;
 import com.picpic.server.room.repository.RoomRedisRepository;
 import com.picpic.server.room.service.usecase.RedisRoomQueryUseCase;
 import lombok.RequiredArgsConstructor;
@@ -24,5 +25,15 @@ public class RedisRoomQuery implements RedisRoomQueryUseCase {
     @Override
     public boolean exist(String roomId) {
         return roomRedisRepository.existsById(roomId);
+    }
+
+    @Override
+    public Integer getRoomCapacity(String roomId) {
+
+        RoomRedisEntity roomRedisEntity = roomRedisRepository
+                .findById(roomId)
+                .orElseThrow(() -> new RuntimeException("Room not found. :" + roomId));
+
+        return roomRedisEntity.getRoomCapacity();
     }
 }

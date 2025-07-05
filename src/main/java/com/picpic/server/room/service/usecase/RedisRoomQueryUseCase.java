@@ -7,4 +7,5 @@ import java.util.List;
 public interface RedisRoomQueryUseCase {
     List<RoomMember> searchMember(String roomId);
     boolean exist(String roomId);
+    Integer getRoomCapacity(String roomId);
 }
