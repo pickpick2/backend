@@ -76,7 +76,7 @@ public class RoomValidationInterceptor implements ChannelInterceptor {
 
         Integer roomCapacity = redisRoomQueryUseCase.getRoomCapacity(roomId);
         Integer currentMemberNum = redisRoomQueryUseCase.searchMember(roomId).size();
-        System.out.println("currentMemberNum = " + currentMemberNum);
+
         if(currentMemberNum >= roomCapacity ) {
             throw new RuntimeException("The room capacity is greater than the room capacity.");
         }
