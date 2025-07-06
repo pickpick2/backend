@@ -14,27 +14,53 @@ public class StickerRedisRepository {
 
     private final RedisTemplate<String, Object> redisTemplate;
 
-    public void saveSticker(Long sessionId, Long stickerId, Long memberId, List<DecorateStickerRequestDTO.Point> points) {
-        String key = generateKey(sessionId, stickerId);
+    // 스티커 저장 (고유 stickerInstanceId 생성)
+    public Long saveSticker(Long sessionId, Long stickerId, Long memberId, List<DecorateStickerRequestDTO.Point> points) {
+        String key = generateKey(sessionId);
+        Long stickerInstanceId = redisTemplate.opsForValue().increment("sticker:instance:id");
 
-        StickerRedisDTO value = new StickerRedisDTO(memberId, points);
-
-        // Redis 리스트에 push (여러 사용자 스티커 저장 가능)
-        redisTemplate.opsForList().rightPush(key, value);
+        StickerRedisDTO dto = new StickerRedisDTO(stickerInstanceId, stickerId, memberId, points);
+        redisTemplate.opsForList().rightPush(key, dto);
+        return stickerInstanceId;
     }
 
-    public List<StickerRedisDTO> getStickerList(Long sessionId, Long stickerId) {
-        String key = generateKey(sessionId, stickerId);
-        List<Object> raw = redisTemplate.opsForList().range(key, 0, -1);
+    // 스티커 위치 수정
+    public void updateStickerPosition(Long sessionId, Long stickerInstanceId, List<DecorateStickerRequestDTO.Point> newPoints) {
+        String key = generateKey(sessionId);
+        List<Object> rawList = redisTemplate.opsForList().range(key, 0, -1);
+        if (rawList == null) return;
 
-        // 타입 캐스팅
-        return raw.stream()
-                .filter(o -> o instanceof StickerRedisDTO)
-                .map(o -> (StickerRedisDTO) o)
-                .toList();
+        for (int i = 0; i < rawList.size(); i++) {
+            Object item = rawList.get(i);
+            if (item instanceof StickerRedisDTO dto && dto.stickerInstanceId().equals(stickerInstanceId)) {
+                StickerRedisDTO updated = new StickerRedisDTO(
+                        dto.stickerInstanceId(),
+                        dto.stickerId(),
+                        dto.memberId(),
+                        newPoints
+                );
+                redisTemplate.opsForList().set(key, i, updated);
+                break;
+            }
+        }
     }
 
-    private String generateKey(Long sessionId, Long stickerId) {
-        return "sticker:" + sessionId + ":" + stickerId;
+    // 스티커 삭제
+    public void deleteSticker(Long sessionId, Long stickerInstanceId) {
+        String key = generateKey(sessionId);
+        List<Object> rawList = redisTemplate.opsForList().range(key, 0, -1);
+        if (rawList == null) return;
+
+        for (Object item : rawList) {
+            if (item instanceof StickerRedisDTO dto && dto.stickerInstanceId().equals(stickerInstanceId)) {
+                redisTemplate.opsForList().remove(key, 1, dto);
+                break;
+            }
+        }
+    }
+
+    // Redis 키 생성
+    private String generateKey(Long sessionId) {
+        return "sticker:" + sessionId;
     }
 }

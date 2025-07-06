@@ -46,17 +46,15 @@ public class DecorateService {
                 () -> new ApiException(ErrorCode.NO_STICKER)
         );
 
-        stickerRedisRepository.saveSticker(req.sessionId(), req.stickerId(), memberId, req.points());
+        Long stickerInstanceId = stickerRedisRepository.saveSticker(req.sessionId(), req.stickerId(), memberId, req.points());
 
-        DecorateStickerResponseDTO res = new DecorateStickerResponseDTO(
+        return new DecorateStickerResponseDTO(
+                stickerInstanceId,
                 req.stickerId(),
                 req.points().stream()
                         .map(p -> new DecorateStickerResponseDTO.Point(p.x(), p.y()))
                         .toList()
         );
-
-        return res;
-
     }
 
 
@@ -131,6 +129,30 @@ public class DecorateService {
         );
 
         return res;
+    }
+
+    public DecorateStickerResponseDTO updateStickerPosition(Long memberId, UpdateStickerPositionRequestDTO req) {
+        Member member = memberRepository.findById(memberId).orElseThrow(
+                () -> new ApiException(ErrorCode.NOT_FOUND_MEMBER)
+        );
+
+        Session session = sessionRepository.findById(req.sessionId()).orElseThrow(
+                () -> new ApiException(ErrorCode.NOT_FOUND_SESSION)
+        );
+
+        Participant participant = participantRepository.findBySessionAndMember(session, member).orElseThrow(
+                () -> new ApiException(ErrorCode.NOT_PARTICIPANT)
+        );
+
+        stickerRedisRepository.updateStickerPosition(req.sessionId(), req.stickerInstanceId(), req.newPoints());
+
+        return new DecorateStickerResponseDTO(
+                req.stickerInstanceId(),
+                req.stickerId(),
+                req.newPoints().stream()
+                        .map(p -> new DecorateStickerResponseDTO.Point(p.x(), p.y()))
+                        .toList()
+        );
     }
 
 }

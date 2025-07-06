@@ -40,6 +40,15 @@ public class DecorateController {
         messagingTemplate.convertAndSend("/topic/" + stickerRequestDTO.sessionCode(), res);
     }
 
+    @MessageMapping("/decor/sticker/update")
+    public void updateStickerPosition(Principal principal, UpdateStickerPositionRequestDTO dto) {
+        Long memberId = Long.parseLong(principal.getName());
+        DecorateStickerResponseDTO res = decorateService.updateStickerPosition(memberId, dto);
+        messagingTemplate.convertAndSend("/topic/" + dto.sessionId(), res);
+    }
+
+
+
     @MessageMapping("/decor/text")
     public void text(Principal principal, DecorateTextRequestDTO textRequestDTO) {
         Long memberId = Long.parseLong(principal.getName());
