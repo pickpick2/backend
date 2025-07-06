@@ -5,7 +5,10 @@ import lombok.Builder;
 import java.security.Principal;
 
 @Builder
-public record MemberPrincipalDetail (Long memberId) implements Principal{
+public record MemberPrincipalDetail (
+        Long memberId,
+        String nickName
+) implements Principal{
 
     @Override
     public String getName() {
