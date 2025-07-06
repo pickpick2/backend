@@ -44,7 +44,14 @@ public class DecorateController {
     public void updateStickerPosition(Principal principal, UpdateStickerPositionRequestDTO dto) {
         Long memberId = Long.parseLong(principal.getName());
         DecorateStickerResponseDTO res = decorateService.updateStickerPosition(memberId, dto);
-        messagingTemplate.convertAndSend("/topic/" + dto.sessionId(), res);
+        messagingTemplate.convertAndSend("/topic/" + dto.sessionCode(), res);
+    }
+
+    @MessageMapping("/decor/sticker/remove")
+    public void removeSticker(Principal principal, DeleteStickerRequestDTO reqDto) {
+        Long memberId = Long.parseLong(principal.getName());
+        DeletedStickerResponseDTO res = decorateService.deleteSticker(memberId, reqDto);
+        messagingTemplate.convertAndSend("/topic/" + reqDto.sessionCode(), res);
     }
 
 
