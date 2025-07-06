@@ -155,5 +155,23 @@ public class DecorateService {
         );
     }
 
+    public DeletedStickerResponseDTO deleteSticker(Long memberId, DeleteStickerRequestDTO req) {
+        Member member = memberRepository.findById(memberId).orElseThrow(
+                () -> new ApiException(ErrorCode.NOT_FOUND_MEMBER)
+        );
+
+        Session session = sessionRepository.findById(req.sessionId()).orElseThrow(
+                () -> new ApiException(ErrorCode.NOT_FOUND_SESSION)
+        );
+
+        Participant participant = participantRepository.findBySessionAndMember(session, member).orElseThrow(
+                () -> new ApiException(ErrorCode.NOT_PARTICIPANT)
+        );
+
+        stickerRedisRepository.deleteSticker(req.sessionId(), req.stickerInstanceId());
+
+        return new DeletedStickerResponseDTO(req.stickerInstanceId());
+    }
+
 }
 
