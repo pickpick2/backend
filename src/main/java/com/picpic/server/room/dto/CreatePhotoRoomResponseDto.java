@@ -4,7 +4,6 @@ import lombok.Builder;
 
 @Builder
 public record CreatePhotoRoomResponseDto(
-	String roomId,
-	Integer roomCapacity
-) {
-}
+    String roomId,
+    Integer roomCapacity
+) { }
