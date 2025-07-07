@@ -73,12 +73,12 @@ public class TextRedisRepository {
         }
     }
 
-//    /*
-//     * 텍스트 삭제
-//     */
-//    public void deleteText(Long sessionId, String textBoxId) {
-//        redisTemplate.delete(generateKey(sessionId, textBoxId));
-//    }
+    /*
+     * 텍스트 삭제
+     */
+    public void deleteText(Long sessionId, String textBoxId) {
+        redisTemplate.delete(generateKey(sessionId, textBoxId));
+    }
 
     /*
      * Redis 키 생성

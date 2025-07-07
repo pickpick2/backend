@@ -77,6 +77,15 @@ public class DecorateController {
         messagingTemplate.convertAndSend("/topic/" + request.sessionCode(), res);
     }
 
+    @MessageMapping("/decor/text/remove")
+    public void removeText(Principal principal, DecorateTextDeleteRequestDTO request) {
+        Long memberId = Long.parseLong(principal.getName());
+        DeletedTextResponseDTO res = decorateService.removeText(memberId, request);
+        messagingTemplate.convertAndSend("/topic/" + request.sessionCode(), res);
+    }
+
+
+
 
 
 }

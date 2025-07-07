@@ -257,5 +257,28 @@ public class DecorateService {
         );
     }
 
+    @Transactional
+    public DeletedTextResponseDTO removeText(Long memberId, DecorateTextDeleteRequestDTO req) {
+        Member member = memberRepository.findById(memberId).orElseThrow(
+                () -> new ApiException(ErrorCode.NOT_FOUND_MEMBER)
+        );
+
+        Session session = sessionRepository.findById(req.sessionId()).orElseThrow(
+                () -> new ApiException(ErrorCode.NOT_FOUND_SESSION)
+        );
+
+        Participant participant = participantRepository.findBySessionAndMember(session, member).orElseThrow(
+                () -> new ApiException(ErrorCode.NOT_PARTICIPANT)
+        );
+
+        TextRedisDTO existing = textRedisRepository.findText(req.sessionId(), req.textBoxId())
+                .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND_TEXT));
+
+            textRedisRepository.deleteText(req.sessionId(), req.textBoxId());
+
+        // 4. 응답용 객체 반환 (삭제됐지만 어떤 게 삭제됐는지 알려줌)
+        return new DeletedTextResponseDTO(req.textBoxId());
+    }
+
 }
 
