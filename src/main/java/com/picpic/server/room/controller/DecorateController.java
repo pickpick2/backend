@@ -63,4 +63,11 @@ public class DecorateController {
         messagingTemplate.convertAndSend("/topic/" + textRequestDTO.sessionCode(), res);
     }
 
+    @MessageMapping("/decor/text/update")
+    public void updateText(Principal principal, DecorateTextUpdateRequestDTO request) {
+        Long memberId = Long.parseLong(principal.getName());
+        DecorateTextResponseDTO res = decorateService.updateText(memberId, request);
+        messagingTemplate.convertAndSend("/topic/" + request.sessionCode(), res);
+    }
+
 }

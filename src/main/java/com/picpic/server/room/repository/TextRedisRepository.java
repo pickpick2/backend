@@ -34,26 +34,26 @@ public class TextRedisRepository {
 
         redisTemplate.opsForValue().set(key, value);
     }
-//    /*
-//     * 텍스트 조회
-//     */
-//    public Optional<TextRedisDTO> findText(Long sessionId, String textBoxId) {
-//        String key = generateKey(sessionId, textBoxId);
-//        Object value = redisTemplate.opsForValue().get(key);
-//        if (value instanceof TextRedisDTO dto) {
-//            return Optional.of(dto);
-//        }
-//        return Optional.empty();
-//    }
-//
-//    /*
-//     * 텍스트 수정 (동일 키 덮어쓰기)
-//     */
-//    public void updateText(Long sessionId, TextRedisDTO dto) {
-//        String key = generateKey(sessionId, dto.textBoxId());
-//        redisTemplate.opsForValue().set(key, dto);
-//    }
-//
+    /*
+     * 텍스트 조회
+     */
+    public Optional<TextRedisDTO> findText(Long sessionId, String textBoxId) {
+        String key = generateKey(sessionId, textBoxId);
+        Object value = redisTemplate.opsForValue().get(key);
+        if (value instanceof TextRedisDTO dto) {
+            return Optional.of(dto);
+        }
+        return Optional.empty();
+    }
+
+    /*
+     * 텍스트 수정 (동일 키 덮어쓰기)
+     */
+    public void updateText(Long sessionId, TextRedisDTO dto) {
+        String key = generateKey(sessionId, dto.textBoxId());
+        redisTemplate.opsForValue().set(key, dto);
+    }
+
 //    /*
 //     * 텍스트 삭제
 //     */

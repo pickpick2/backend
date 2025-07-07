@@ -178,5 +178,45 @@ public class DecorateService {
         return new DeletedStickerResponseDTO(req.stickerInstanceId());
     }
 
+    @Transactional
+    public DecorateTextResponseDTO updateText(Long memberId, DecorateTextUpdateRequestDTO req) {
+        Member member = memberRepository.findById(memberId).orElseThrow(
+                () -> new ApiException(ErrorCode.NOT_FOUND_MEMBER)
+        );
+
+        Session session = sessionRepository.findById(req.sessionId()).orElseThrow(
+                () -> new ApiException(ErrorCode.NOT_FOUND_SESSION)
+        );
+
+        Participant participant = participantRepository.findBySessionAndMember(session, member).orElseThrow(
+                () -> new ApiException(ErrorCode.NOT_PARTICIPANT)
+        );
+
+
+        TextRedisDTO existing = textRedisRepository.findText(req.sessionId(), req.textBoxId())
+                .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND_TEXT));
+
+        TextRedisDTO updated = new TextRedisDTO(
+                req.textBoxId(),
+                req.newText(),
+                req.newFont(),
+                req.newColor(),
+                existing.points()
+        );
+
+        textRedisRepository.updateText(req.sessionId(), updated);
+
+
+        return new DecorateTextResponseDTO(
+                updated.textBoxId(),
+                updated.text(),
+                updated.font(),
+                updated.color(),
+                updated.points().stream()
+                        .map(p -> new DecorateTextResponseDTO.Point(p.x(), p.y()))
+                        .toList()
+        );
+    }
+
 }
 
