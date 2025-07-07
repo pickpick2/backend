@@ -1,6 +1,7 @@
 package com.picpic.server.room.domain;
 
-import com.picpic.server.common.security.MemberPrincipalDetail;
+import com.picpic.server.common.auth.MemberPrincipalDetail;
+
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -9,18 +10,18 @@ import lombok.Setter;
 @Getter
 @Setter
 public class RoomMember {
-    Long memberId;
-    String memberName;
-    RoomMemberStatus memberStatus;
+	Long memberId;
+	String memberName;
+	RoomMemberStatus memberStatus;
 
-    public enum RoomMemberStatus {
-        NONE, CONNECTED, DISCONNECTED
-    }
+	public enum RoomMemberStatus {
+		NONE, CONNECTED, DISCONNECTED
+	}
 
-    public static RoomMember from(MemberPrincipalDetail principalDetail) {
-        return RoomMember.builder()
-                .memberId(principalDetail.memberId())
-                .memberName(principalDetail.getName())
-                .build();
-    }
+	public static RoomMember from(MemberPrincipalDetail principalDetail) {
+		return RoomMember.builder()
+			.memberId(principalDetail.memberId())
+			.memberName(principalDetail.getName())
+			.build();
+	}
 }

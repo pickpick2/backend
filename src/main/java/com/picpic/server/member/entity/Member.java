@@ -1,20 +1,15 @@
-package com.picpic.server.room.entity;
+package com.picpic.server.member.entity;
 
 import java.time.LocalDateTime;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import com.picpic.server.member.entity.Member;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,26 +18,33 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "participant")
+@Table(name = "member")
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Participant {
+public class Member {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "participant_id")
-	private Long participantId;
+	@Column(name = "member_id")
+	private Long memberId;
 
-	@ManyToOne(fetch = FetchType.LAZY, optional = false)
-	@JoinColumn(name = "session_id", nullable = false)
-	private Session session;
+	@Column(nullable = false, length = 20)
+	private String nickname;
 
-	@ManyToOne(fetch = FetchType.LAZY, optional = false)
-	@JoinColumn(name = "member_id", nullable = false)
-	private Member member;
+	@Column(name = "profile_image_url", nullable = false)
+	private String profileImageUrl;
+
+	@Column(nullable = false, length = 7)
+	private String color;
+
+	@Column(unique = true, length = 100)
+	private String email;
+
+	@Column(nullable = false)
+	private Role role;
 
 	@CreationTimestamp
 	@Column(name = "created_at", updatable = false)
@@ -55,4 +57,17 @@ public class Participant {
 	@Column(name = "deleted_at")
 	private LocalDateTime deletedAt;
 
+	@Getter
+	public enum Role {
+		ADMIN(0),
+		GUEST(1),
+		KAKAO(2);
+
+		private final int code;
+
+		Role(int code) {
+			this.code = code;
+		}
+
+	}
 }

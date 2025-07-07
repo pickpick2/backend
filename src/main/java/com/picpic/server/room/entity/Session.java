@@ -1,10 +1,11 @@
 package com.picpic.server.room.entity;
 
-
 import java.time.LocalDateTime;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+
+import com.picpic.server.member.entity.Member;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -29,65 +30,65 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Session {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "session_id")
-    private Long sessionId;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "session_id")
+	private Long sessionId;
 
-    @Column(name = "session_code", nullable = false, length = 32, unique = true)
-    private String sessionCode;
+	@Column(name = "session_code", nullable = false, length = 32, unique = true)
+	private String sessionCode;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "member_id", nullable = false)
-    private Member member;
+	@ManyToOne(fetch = FetchType.LAZY, optional = false)
+	@JoinColumn(name = "member_id", nullable = false)
+	private Member member;
 
-    @Column(name = "password")
-    private String password;
+	@Column(name = "password")
+	private String password;
 
-    @Column(nullable = false)
-    private SessionStatus status;
+	@Column(nullable = false)
+	private SessionStatus status;
 
-    @CreationTimestamp
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt;
+	@CreationTimestamp
+	@Column(name = "created_at", updatable = false)
+	private LocalDateTime createdAt;
 
-    @UpdateTimestamp
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+	@UpdateTimestamp
+	@Column(name = "updated_at")
+	private LocalDateTime updatedAt;
 
-    @Column(name = "deleted_at")
-    private LocalDateTime deletedAt;
+	@Column(name = "deleted_at")
+	private LocalDateTime deletedAt;
 
-    @Getter
-    public enum SessionStatus {
-        WAITING(0),
-        FRAME(1),
-        PHOTO(2),
-        DECORATE(3),
-        RESULT(4),
-        FINISHED(5);
+	@Getter
+	public enum SessionStatus {
+		WAITING(0),
+		FRAME(1),
+		PHOTO(2),
+		DECORATE(3),
+		RESULT(4),
+		FINISHED(5);
 
-        private final int status;
+		private final int status;
 
-        private SessionStatus(int status) {
-            this.status = status;
-        }
-    }
+		private SessionStatus(int status) {
+			this.status = status;
+		}
+	}
 
-    public void start() {
-        this.status = SessionStatus.PHOTO;
-    }
+	public void start() {
+		this.status = SessionStatus.PHOTO;
+	}
 
-    public void decorate() {
-        this.status = SessionStatus.DECORATE;
-    }
+	public void decorate() {
+		this.status = SessionStatus.DECORATE;
+	}
 
-    public void collage() {
-        this.status = SessionStatus.RESULT;
-    }
+	public void collage() {
+		this.status = SessionStatus.RESULT;
+	}
 
-    public void finish() {
-        this.status = SessionStatus.FINISHED;
-    }
+	public void finish() {
+		this.status = SessionStatus.FINISHED;
+	}
 }
 

@@ -3,8 +3,9 @@ package com.picpic.server.room.service;
 
 import com.picpic.server.common.exception.ApiException;
 import com.picpic.server.common.exception.ErrorCode;
+import com.picpic.server.member.repository.MemberRepository;
 import com.picpic.server.room.dto.*;
-import com.picpic.server.room.entity.Member;
+import com.picpic.server.member.entity.Member;
 import com.picpic.server.room.entity.Participant;
 import com.picpic.server.room.entity.Session;
 import com.picpic.server.room.entity.Sticker;
@@ -30,26 +31,25 @@ public class DecorateService {
     private final TextRedisRepository textRedisRepository;
     private final PenRedisRepository penRedisRepository;
 
+	public DecorateStickerResponseDTO sticker(Long memberId, DecorateStickerRequestDTO req) {
+		Member member = memberRepository.findById(memberId).orElseThrow(
+			() -> new ApiException(ErrorCode.NOT_FOUND_MEMBER)
+		);
 
+		Session session = sessionRepository.findById(req.sessionId()).orElseThrow(
+			() -> new ApiException(ErrorCode.NOT_FOUND_SESSION)
+		);
 
-    public DecorateStickerResponseDTO sticker(Long memberId, DecorateStickerRequestDTO req) {
-        Member member = memberRepository.findById(memberId).orElseThrow(
-                () -> new ApiException(ErrorCode.NOT_FOUND_MEMBER)
-        );
+		Participant participant = participantRepository.findBySessionAndMember(session, member).orElseThrow(
+			() -> new ApiException(ErrorCode.NOT_PARTICIPANT)
+		);
 
-        Session session = sessionRepository.findById(req.sessionId()).orElseThrow(
-                () -> new ApiException(ErrorCode.NOT_FOUND_SESSION)
-        );
+		Sticker sticker = stickerRepository.findById(req.stickerId()).orElseThrow(
+			() -> new ApiException(ErrorCode.NO_STICKER)
+		);
 
-        Participant participant = participantRepository.findBySessionAndMember(session, member).orElseThrow(
-                () -> new ApiException(ErrorCode.NOT_PARTICIPANT)
-        );
-
-        Sticker sticker = stickerRepository.findById(req.stickerId()).orElseThrow(
-                () -> new ApiException(ErrorCode.NO_STICKER)
-        );
-
-        Long stickerInstanceId = stickerRedisRepository.saveSticker(req.sessionId(), req.stickerId(), memberId, req.points());
+		Long stickerInstanceId = stickerRedisRepository.saveSticker(req.sessionId(), req.stickerId(), memberId,
+			req.points());
 
         return new DecorateStickerResponseDTO(
                 stickerInstanceId,
@@ -60,19 +60,18 @@ public class DecorateService {
         );
     }
 
+	public DecorateTextResponseDTO putText(Long memberId, DecorateTextRequestDTO req) {
+		Member member = memberRepository.findById(memberId).orElseThrow(
+			() -> new ApiException(ErrorCode.NOT_FOUND_MEMBER)
+		);
 
-    public DecorateTextResponseDTO putText(Long memberId, DecorateTextRequestDTO req) {
-        Member member = memberRepository.findById(memberId).orElseThrow(
-                () -> new ApiException(ErrorCode.NOT_FOUND_MEMBER)
-        );
+		Session session = sessionRepository.findById(req.sessionId()).orElseThrow(
+			() -> new ApiException(ErrorCode.NOT_FOUND_SESSION)
+		);
 
-        Session session = sessionRepository.findById(req.sessionId()).orElseThrow(
-                () -> new ApiException(ErrorCode.NOT_FOUND_SESSION)
-        );
-
-        Participant participant = participantRepository.findBySessionAndMember(session, member).orElseThrow(
-                () -> new ApiException(ErrorCode.NOT_PARTICIPANT)
-        );
+		Participant participant = participantRepository.findBySessionAndMember(session, member).orElseThrow(
+			() -> new ApiException(ErrorCode.NOT_PARTICIPANT)
+		);
 
         String textBoxId = UUID.randomUUID().toString();
 

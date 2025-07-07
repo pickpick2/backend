@@ -6,6 +6,13 @@
 # $ git config --global mergetool.keepBackup false
 *.orig
 
+application.yaml
+application.yml
+application-dev.yml
+application-prod.yml
+application-test.yml
+data.sql
+
 # Created by git when using merge tools for conflicts
 *.BACKUP.*
 *.BASE.*
