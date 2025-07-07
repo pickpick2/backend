@@ -15,9 +15,10 @@ public class RedisRoomCommand implements RedisRoomCommandUseCase {
     private final RoomRedisRepository roomRedisRepository;
 
     @Override
-    public void create(String roomId, MemberPrincipalDetail memberPrincipal) {
+    public void create(String roomId, MemberPrincipalDetail memberPrincipal, Integer roomCapacity) {
 
         RoomRedisEntity room = RoomRedisEntity.builder()
+                .roomCapacity(roomCapacity)
                 .roomId(roomId)
                 .creator(RoomMember.from(memberPrincipal))
                 .build();
@@ -49,5 +50,17 @@ public class RedisRoomCommand implements RedisRoomCommandUseCase {
         RoomRedisEntity updatedEntity = roomEntity.subtractMember(memberId);
 
         roomRedisRepository.save(updatedEntity);
+    }
+
+    @Override
+    public void updateRoomCapacity(String roomId, Integer roomCapacity) {
+        RoomRedisEntity roomEntity = roomRedisRepository.findById(roomId)
+                .orElseThrow(() -> new RuntimeException("Room not found. :" + roomId));
+
+        RoomRedisEntity updatedRoom = roomEntity.toBuilder()
+                .roomCapacity(roomCapacity)
+                .build();
+
+        roomRedisRepository.save(updatedRoom);
     }
 }
