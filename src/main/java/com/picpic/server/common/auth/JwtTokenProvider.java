@@ -11,15 +11,24 @@ import javax.crypto.spec.SecretKeySpec;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import com.picpic.server.common.exception.ApiException;
+import com.picpic.server.common.exception.ErrorCode;
+import com.picpic.server.member.entity.Member;
+import com.picpic.server.member.repository.MemberRepository;
+
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 
 @Component
+@RequiredArgsConstructor
 public class JwtTokenProvider {
+
+	private final MemberRepository memberRepository;
 
 	@Value("${jwt.secret}")
 	private String secret;
@@ -28,37 +37,53 @@ public class JwtTokenProvider {
 	private Long expiration;
 
 	public String generateToken(Long memberId) {
+		Member member = memberRepository.findById(memberId).orElseThrow(
+			() -> new ApiException(ErrorCode.NOT_FOUND_MEMBER)
+		);
+
+		String nickname = member.getNickname();
+		String role = member.getRole().toString();
+
 		Date now = new Date();
 		return Jwts.builder()
 			.subject(String.valueOf(memberId))
+			.claim("nickname", nickname)
+			.claim("role", role)
 			.issuedAt(now)
 			.expiration(new Date(now.getTime() + expiration))
 			.signWith(getSignInKey())
 			.compact();
 	}
 
-	public boolean validateToken(String token) {
+	public void validateToken(String token) {
 		try {
 			Jwts.parser()
 				.verifyWith(getSignInKey())
 				.build()
 				.parseSignedClaims(token)
 				.getPayload();
-			return true;
 		} catch (ExpiredJwtException e) {
-			// TODO: 공용 에러 처리
-			e.printStackTrace();
+			throw new ApiException(ErrorCode.EXPIRED_TOKEN);
 
 		} catch (JwtException e) {
-			// TODO: 공용 에러 처리
-			e.printStackTrace();
+			throw new ApiException(ErrorCode.UNAVAILABLE_TOKEN);
 		}
-		return false;
 	}
 
 	public Long getMemberId(String token) {
 		Claims claims = parseClaims(token);
 		return Long.parseLong(claims.getSubject());
+	}
+
+	public String getNickname(String token) {
+		Claims claims = parseClaims(token);
+		return claims.get("nickname", String.class);
+	}
+
+	public Member.Role getRole(String token) {
+		Claims claims = parseClaims(token);
+		String roleStr = claims.get("role", String.class);
+		return Member.Role.valueOf(roleStr);
 	}
 
 	public Claims parseClaims(String token) {

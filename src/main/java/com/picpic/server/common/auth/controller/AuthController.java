@@ -1,4 +1,4 @@
-package com.picpic.server.common.auth;
+package com.picpic.server.common.auth.controller;
 
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.picpic.server.common.auth.dto.GuestLoginResponseDTO;
 import com.picpic.server.common.auth.dto.GuestLoginResultDTO;
+import com.picpic.server.common.auth.service.AuthService;
 import com.picpic.server.common.response.ApiResponse;
 
 import jakarta.servlet.http.HttpServletResponse;
