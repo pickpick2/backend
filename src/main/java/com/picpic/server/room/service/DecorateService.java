@@ -3,8 +3,9 @@ package com.picpic.server.room.service;
 
 import com.picpic.server.common.exception.ApiException;
 import com.picpic.server.common.exception.ErrorCode;
+import com.picpic.server.member.repository.MemberRepository;
 import com.picpic.server.room.dto.*;
-import com.picpic.server.room.entity.Member;
+import com.picpic.server.member.entity.Member;
 import com.picpic.server.room.entity.Participant;
 import com.picpic.server.room.entity.Session;
 import com.picpic.server.room.entity.Sticker;
