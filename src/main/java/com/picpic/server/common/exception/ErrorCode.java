@@ -14,9 +14,9 @@ public enum ErrorCode {
 	UNAVAILABLE_TOKEN("1004", HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰입니다."),
 	FORBIDDEN_ACCESS("1005", HttpStatus.FORBIDDEN, "사진 업로드 권한이 없습니다."),
 
-	// Not Found
-	NOT_FOUND_MEMBER("3001", HttpStatus.NOT_FOUND, "요청하신 유저를 찾을 수 없습니다."),
-	NOT_FOUND_SESSION("3004", HttpStatus.NOT_FOUND, "요청하신 세션을 찾을 수 없습니다."),
+  NOT_FOUND_MEMBER("3001", HttpStatus.NOT_FOUND, "요청하신 유저를 찾을 수 없습니다."),
+  NOT_FOUND_SESSION("3002", HttpStatus.NOT_FOUND, "요청하신 세션을 찾을 수 없습니다."),
+  NOT_FOUND_TEXT("3003", HttpStatus.NOT_FOUND, "요청하신 텍스트를 찾을 수 없습니다."),
 
 	// Bad Request
 	BAD_REQUEST("4000", HttpStatus.BAD_REQUEST, "잘못된 요청입니다."),
