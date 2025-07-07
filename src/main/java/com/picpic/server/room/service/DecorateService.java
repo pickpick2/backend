@@ -14,6 +14,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -71,21 +74,24 @@ public class DecorateService {
                 () -> new ApiException(ErrorCode.NOT_PARTICIPANT)
         );
 
-        TextRedisDTO dto = new TextRedisDTO(
+        String textBoxId = UUID.randomUUID().toString();
+
+        textRedisRepository.saveText(
+                req.sessionId(),
+                textBoxId,
+                req.text(),
+                req.font(),
+                req.color(),
+                memberId,
+                req.points()
+        );
+
+        DecorateTextResponseDTO res = new DecorateTextResponseDTO(
+                textBoxId,
                 req.text(),
                 req.font(),
                 req.color(),
                 req.points().stream()
-                        .map(p -> new TextRedisDTO.Point(p.x(), p.y()))
-                        .toList()
-        );
-        textRedisRepository.saveText(req.sessionId(), req.text(), req.font(), req.color(), memberId, req.points());
-
-        DecorateTextResponseDTO res = new DecorateTextResponseDTO(
-                dto.text(),
-                dto.font(),
-                dto.color(),
-                dto.points().stream()
                         .map(p -> new DecorateTextResponseDTO.Point(p.x(), p.y()))
                         .toList()
         );
@@ -171,6 +177,107 @@ public class DecorateService {
         stickerRedisRepository.deleteSticker(req.sessionId(), req.stickerInstanceId());
 
         return new DeletedStickerResponseDTO(req.stickerInstanceId());
+    }
+
+    @Transactional
+    public DecorateTextResponseDTO updateText(Long memberId, DecorateTextUpdateRequestDTO req) {
+        Member member = memberRepository.findById(memberId).orElseThrow(
+                () -> new ApiException(ErrorCode.NOT_FOUND_MEMBER)
+        );
+
+        Session session = sessionRepository.findById(req.sessionId()).orElseThrow(
+                () -> new ApiException(ErrorCode.NOT_FOUND_SESSION)
+        );
+
+        Participant participant = participantRepository.findBySessionAndMember(session, member).orElseThrow(
+                () -> new ApiException(ErrorCode.NOT_PARTICIPANT)
+        );
+
+
+        TextRedisDTO existing = textRedisRepository.findText(req.sessionId(), req.textBoxId())
+                .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND_TEXT));
+
+        TextRedisDTO updated = new TextRedisDTO(
+                req.textBoxId(),
+                req.newText(),
+                req.newFont(),
+                req.newColor(),
+                existing.points()
+        );
+
+        textRedisRepository.updateText(req.sessionId(), updated);
+
+
+        return new DecorateTextResponseDTO(
+                updated.textBoxId(),
+                updated.text(),
+                updated.font(),
+                updated.color(),
+                updated.points().stream()
+                        .map(p -> new DecorateTextResponseDTO.Point(p.x(), p.y()))
+                        .toList()
+        );
+    }
+
+    @Transactional
+    public DecorateTextResponseDTO moveText(Long memberId, DecorateTextMoveRequestDTO req) {
+        Member member = memberRepository.findById(memberId).orElseThrow(
+                () -> new ApiException(ErrorCode.NOT_FOUND_MEMBER)
+        );
+
+        Session session = sessionRepository.findById(req.sessionId()).orElseThrow(
+                () -> new ApiException(ErrorCode.NOT_FOUND_SESSION)
+        );
+
+        Participant participant = participantRepository.findBySessionAndMember(session, member).orElseThrow(
+                () -> new ApiException(ErrorCode.NOT_PARTICIPANT)
+        );
+
+
+        TextRedisDTO existing = textRedisRepository.findText(req.sessionId(), req.textBoxId())
+                .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND_TEXT));
+
+
+        List<TextRedisDTO.Point> newPoints = req.points().stream()
+                .map(p -> new TextRedisDTO.Point(p.x(), p.y()))
+                .toList();
+
+
+        textRedisRepository.updateTextPosition(req.sessionId(), req.textBoxId(), newPoints);
+
+
+        return new DecorateTextResponseDTO(
+                existing.textBoxId(),
+                existing.text(),
+                existing.font(),
+                existing.color(),
+                newPoints.stream()
+                        .map(p -> new DecorateTextResponseDTO.Point(p.x(), p.y()))
+                        .toList()
+        );
+    }
+
+    @Transactional
+    public DeletedTextResponseDTO removeText(Long memberId, DecorateTextDeleteRequestDTO req) {
+        Member member = memberRepository.findById(memberId).orElseThrow(
+                () -> new ApiException(ErrorCode.NOT_FOUND_MEMBER)
+        );
+
+        Session session = sessionRepository.findById(req.sessionId()).orElseThrow(
+                () -> new ApiException(ErrorCode.NOT_FOUND_SESSION)
+        );
+
+        Participant participant = participantRepository.findBySessionAndMember(session, member).orElseThrow(
+                () -> new ApiException(ErrorCode.NOT_PARTICIPANT)
+        );
+
+        TextRedisDTO existing = textRedisRepository.findText(req.sessionId(), req.textBoxId())
+                .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND_TEXT));
+
+            textRedisRepository.deleteText(req.sessionId(), req.textBoxId());
+
+        // 4. 응답용 객체 반환 (삭제됐지만 어떤 게 삭제됐는지 알려줌)
+        return new DeletedTextResponseDTO(req.textBoxId());
     }
 
 }
