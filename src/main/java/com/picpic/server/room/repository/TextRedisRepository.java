@@ -54,6 +54,25 @@ public class TextRedisRepository {
         redisTemplate.opsForValue().set(key, dto);
     }
 
+    /*
+     * 텍스트 위치만 수정 (points만 업데이트)
+     */
+    public void updateTextPosition(Long sessionId, String textBoxId, List<TextRedisDTO.Point> newPoints) {
+        String key = generateKey(sessionId, textBoxId);
+        Object value = redisTemplate.opsForValue().get(key);
+
+        if (value instanceof TextRedisDTO oldDto) {
+            TextRedisDTO updated = new TextRedisDTO(
+                    oldDto.textBoxId(),
+                    oldDto.text(),
+                    oldDto.font(),
+                    oldDto.color(),
+                    newPoints
+            );
+            redisTemplate.opsForValue().set(key, updated);
+        }
+    }
+
 //    /*
 //     * 텍스트 삭제
 //     */

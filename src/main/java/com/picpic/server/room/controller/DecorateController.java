@@ -70,4 +70,13 @@ public class DecorateController {
         messagingTemplate.convertAndSend("/topic/" + request.sessionCode(), res);
     }
 
+    @MessageMapping("/decor/text/move")
+    public void moveText(Principal principal, DecorateTextMoveRequestDTO request) {
+        Long memberId = Long.parseLong(principal.getName());
+        DecorateTextResponseDTO res = decorateService.moveText(memberId, request);
+        messagingTemplate.convertAndSend("/topic/" + request.sessionCode(), res);
+    }
+
+
+
 }

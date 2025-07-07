@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -213,6 +214,44 @@ public class DecorateService {
                 updated.font(),
                 updated.color(),
                 updated.points().stream()
+                        .map(p -> new DecorateTextResponseDTO.Point(p.x(), p.y()))
+                        .toList()
+        );
+    }
+
+    @Transactional
+    public DecorateTextResponseDTO moveText(Long memberId, DecorateTextMoveRequestDTO req) {
+        Member member = memberRepository.findById(memberId).orElseThrow(
+                () -> new ApiException(ErrorCode.NOT_FOUND_MEMBER)
+        );
+
+        Session session = sessionRepository.findById(req.sessionId()).orElseThrow(
+                () -> new ApiException(ErrorCode.NOT_FOUND_SESSION)
+        );
+
+        Participant participant = participantRepository.findBySessionAndMember(session, member).orElseThrow(
+                () -> new ApiException(ErrorCode.NOT_PARTICIPANT)
+        );
+
+
+        TextRedisDTO existing = textRedisRepository.findText(req.sessionId(), req.textBoxId())
+                .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND_TEXT));
+
+
+        List<TextRedisDTO.Point> newPoints = req.points().stream()
+                .map(p -> new TextRedisDTO.Point(p.x(), p.y()))
+                .toList();
+
+
+        textRedisRepository.updateTextPosition(req.sessionId(), req.textBoxId(), newPoints);
+
+
+        return new DecorateTextResponseDTO(
+                existing.textBoxId(),
+                existing.text(),
+                existing.font(),
+                existing.color(),
+                newPoints.stream()
                         .map(p -> new DecorateTextResponseDTO.Point(p.x(), p.y()))
                         .toList()
         );
