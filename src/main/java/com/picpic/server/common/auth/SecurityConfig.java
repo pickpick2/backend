@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -31,10 +32,18 @@ public class SecurityConfig {
 				sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 			.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
 			.authorizeHttpRequests(
-				authorizeRequests -> authorizeRequests.requestMatchers("/api/v1/sign-in", "/api/v1/sign-up")
+				authorizeRequests -> authorizeRequests.requestMatchers(
+						"/h2/**",
+						"/api/v1/sign-in",
+						"/api/v1/sign-up",
+						"/api/v1/guest"
+					)
 					.permitAll()
 					.anyRequest()
 					.authenticated())
+			.headers(headers -> headers
+				.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable)
+			)
 			.build();
 	}
 
