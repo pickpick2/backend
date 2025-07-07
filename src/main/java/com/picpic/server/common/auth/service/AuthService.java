@@ -1,8 +1,9 @@
-package com.picpic.server.common.auth;
+package com.picpic.server.common.auth.service;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.picpic.server.common.auth.JwtTokenProvider;
 import com.picpic.server.common.auth.dto.GuestLoginResultDTO;
 import com.picpic.server.member.entity.Member;
 import com.picpic.server.member.entity.Nickname;
