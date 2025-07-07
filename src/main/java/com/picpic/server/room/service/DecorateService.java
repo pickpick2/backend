@@ -14,6 +14,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -71,21 +73,24 @@ public class DecorateService {
                 () -> new ApiException(ErrorCode.NOT_PARTICIPANT)
         );
 
-        TextRedisDTO dto = new TextRedisDTO(
+        String textBoxId = UUID.randomUUID().toString();
+
+        textRedisRepository.saveText(
+                req.sessionId(),
+                textBoxId,
+                req.text(),
+                req.font(),
+                req.color(),
+                memberId,
+                req.points()
+        );
+
+        DecorateTextResponseDTO res = new DecorateTextResponseDTO(
+                textBoxId,
                 req.text(),
                 req.font(),
                 req.color(),
                 req.points().stream()
-                        .map(p -> new TextRedisDTO.Point(p.x(), p.y()))
-                        .toList()
-        );
-        textRedisRepository.saveText(req.sessionId(), req.text(), req.font(), req.color(), memberId, req.points());
-
-        DecorateTextResponseDTO res = new DecorateTextResponseDTO(
-                dto.text(),
-                dto.font(),
-                dto.color(),
-                dto.points().stream()
                         .map(p -> new DecorateTextResponseDTO.Point(p.x(), p.y()))
                         .toList()
         );

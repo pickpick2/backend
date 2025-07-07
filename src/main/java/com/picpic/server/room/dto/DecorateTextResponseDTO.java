@@ -3,6 +3,7 @@ package com.picpic.server.room.dto;
 import java.util.List;
 
 public record DecorateTextResponseDTO(
+        String textBoxId,
         String text,
         String font,
         String color,
