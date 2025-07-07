@@ -14,6 +14,8 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import com.picpic.server.common.filter.ExceptionHandlerFilter;
+
 import lombok.RequiredArgsConstructor;
 
 @Configuration
@@ -24,19 +26,21 @@ public class SecurityConfig {
 
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http,
-		JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
+		JwtAuthenticationFilter jwtAuthenticationFilter, ExceptionHandlerFilter exceptionHandlerFilter) throws
+		Exception {
 
 		return http
 			.cors(cors -> cors.configurationSource(corsConfigurationSource()))
 			.csrf(AbstractHttpConfigurer::disable)
 			.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 			.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+			.addFilterBefore(exceptionHandlerFilter, JwtAuthenticationFilter.class)
 
 			// ✅ 개발 환경용: 모든 요청 허용 (h2-console, swagger 등 접근 가능)
 			.authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
 
-			/*
 			// ✅ 운영 환경용: 인증 필요한 요청만 보호
+			/*
 			.authorizeHttpRequests(auth -> auth
 				.requestMatchers(
 					"/h2/**",                // (옵션) 개발 시 DB 콘솔 접근
@@ -77,5 +81,10 @@ public class SecurityConfig {
 	@Bean
 	public JwtAuthenticationFilter jwtAuthenticationFilter() {
 		return new JwtAuthenticationFilter(jwtTokenProvider);
+	}
+
+	@Bean
+	public ExceptionHandlerFilter exceptionHandlerFilter() {
+		return new ExceptionHandlerFilter();
 	}
 }
