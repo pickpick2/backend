@@ -6,8 +6,8 @@ import lombok.Getter;
 @Getter
 @Builder
 public class PhotoListResponse {
-    private String photoId;
-    private String title;
-    private String url;
-    private Long createdAt;
+	private String photoId;
+	private String title;
+	private String url;
+	private Long createdAt;
 }
