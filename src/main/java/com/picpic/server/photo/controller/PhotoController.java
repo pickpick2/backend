@@ -33,15 +33,26 @@ public class PhotoController {
 	 */
 	@GetMapping
 	public List<PhotoListResponse> listAlbums(
+		@AuthenticationPrincipal MemberPrincipalDetail member,
 		@RequestParam(required = false) String search,
+		// @RequestParam(defaultValue = "createdAt") String sortField,
+		// @RequestParam(defaultValue = "desc") String sortOrder,
 		@RequestParam(required = false) String cursor,
 		@RequestParam(defaultValue = "20") int size) {
 
 		Instant createdAtCursor = (cursor != null)
 			? Instant.parse(cursor)
-			: Instant.now();  // 커서 없으면 현재 시점으로 시작
+			: Instant.now();
 
-		return photoUseCase.listPhotos(search, createdAtCursor, size);
+		return photoUseCase.listPhotos(member.memberId(), search, createdAtCursor, size);
+
+		// return photoUseCase.listPhotos(
+		// 	member.memberId(),
+		// 	search,
+		// 	sortField,
+		// 	sortOrder,
+		// 	createdAtCursor,
+		// 	size);
 	}
 
 	@GetMapping("/{albumId}")

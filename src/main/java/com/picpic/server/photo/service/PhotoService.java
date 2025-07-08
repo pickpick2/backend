@@ -7,65 +7,65 @@ import java.util.stream.Collectors;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.picpic.server.photo.dto.PhotoDetailResponse;
 import com.picpic.server.photo.dto.PhotoListResponse;
 import com.picpic.server.photo.entity.PhotoEntity;
 import com.picpic.server.photo.entity.PhotoParticipantEntity;
-import com.picpic.server.photo.repository.PhotoParticipantRepository;
+import com.picpic.server.photo.repository.PhotoAlbumRepository;
 import com.picpic.server.photo.repository.PhotoRepository;
 import com.picpic.server.photo.service.usecase.PhotoUseCase;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
-@Transactional
 @RequiredArgsConstructor
 public class PhotoService implements PhotoUseCase {
 
 	private final PhotoRepository photoRepo;
-	private final PhotoParticipantRepository participantRepo;
+	private final PhotoAlbumRepository albumRepo;
 
 	@Override
+	@Transactional(readOnly = true)
 	public List<PhotoListResponse> listPhotos(
-		String search, Instant cursorCreatedAt, int size) {
+		long memberId, String search, Instant cursorCreatedAt, int size) {
 
-		// PageRequest: createdAt 기준 내림차순
+		// 커서 기반 페이징: photo.createdAt 내림차순
 		PageRequest pageReq = PageRequest.of(0, size,
-			Sort.by(Sort.Direction.DESC, "createdAt"));
+			Sort.by(Sort.Direction.DESC, "photo.createdAt"));
 
-		List<PhotoEntity> entities;
+		var page = (search == null || search.isBlank())
+			? albumRepo.findByIdMemberIdAndPhotoCreatedAtBefore(memberId, cursorCreatedAt, pageReq)
+			: albumRepo.findByIdMemberIdAndPhotoTitleContainingAndPhotoCreatedAtBefore(
+			memberId, search, cursorCreatedAt, pageReq);
 
-		if (search == null || search.isBlank()) {
-			// cursorCreatedAt 이전 데이터만 조회
-			entities = photoRepo
-				.findByCreatedAtBefore(cursorCreatedAt, pageReq)
-				.getContent();
-		} else {
-			// 검색 + 커서 결합: title 포함 + createdAt 이전
-			entities = photoRepo
-				.findByTitleContainingAndCreatedAtBefore(
-					search, cursorCreatedAt, pageReq)
-				.getContent();
-		}
-
-		return entities.stream()
-			.map(p -> PhotoListResponse.builder()
-				.photoId(p.getPhotoId())
-				.title(p.getTitle())
-				.url(p.getUrl())
-				.createdAt(p.getCreatedAt().toEpochMilli())
-				.build())
+		return page.stream()
+			.map(album -> {
+				PhotoEntity photo = album.getPhoto();
+				return PhotoListResponse.builder()
+					.photoId(photo.getPhotoId())
+					.title(photo.getTitle())
+					.url(photo.getUrl())
+					.createdAt(photo.getCreatedAt().toEpochMilli())
+					.build();
+			})
 			.collect(Collectors.toList());
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public PhotoDetailResponse getPhotoDetail(String photoId, long memberId) {
+		// 1) 내 앨범에 담겨 있는지 확인
+		var albumId = new com.picpic.server.photo.entity.PhotoAlbumId(photoId, memberId);
+		albumRepo.findById(albumId)
+			.orElseThrow(() -> new IllegalArgumentException("앨범에 포함되지 않은 사진입니다."));
+
+		// 2) 사진과 원본 참여자 로드
 		PhotoEntity photo = photoRepo.findById(photoId)
 			.orElseThrow(() -> new IllegalArgumentException("사진이 존재하지 않습니다."));
 
-		var participants = photo.getParticipants().stream()
+		List<Long> participants = photo.getParticipants().stream()
 			.map(PhotoParticipantEntity::getMemberId)
 			.distinct()
 			.collect(Collectors.toList());
@@ -80,8 +80,15 @@ public class PhotoService implements PhotoUseCase {
 	}
 
 	@Override
+	@Transactional
 	public void deletePhoto(String photoId, long memberId) {
-		// TODO: memberId 검증 (사진 소유자 또는 참여자만 삭제 가능)
-		photoRepo.deleteByPhotoId(photoId);
+		// 1) 내 앨범 연결만 삭제
+		albumRepo.deleteByIdPhotoIdAndIdMemberId(photoId, memberId);
+
+		// 2) 남은 사용자가 없으면 실제 사진 삭제
+		boolean stillInUse = albumRepo.existsByIdPhotoId(photoId);
+		if (!stillInUse) {
+			photoRepo.deleteById(photoId);
+		}
 	}
 }

@@ -9,8 +9,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import com.picpic.server.photo.entity.PhotoEntity;
 
 public interface PhotoRepository extends JpaRepository<PhotoEntity, String> {
-	void deleteByPhotoId(String photoId);
-
 	Page<PhotoEntity> findByCreatedAtBefore(Instant before, Pageable pageable);
 
 	Page<PhotoEntity> findByTitleContainingAndCreatedAtBefore(
