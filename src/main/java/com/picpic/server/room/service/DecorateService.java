@@ -104,13 +104,13 @@ public class DecorateService {
                 () -> new ApiException(ErrorCode.NOT_FOUND_MEMBER)
         );
 
-        Session session = sessionRepository.findById(req.sessionId()).orElseThrow(
-                () -> new ApiException(ErrorCode.NOT_FOUND_SESSION)
-        );
+//        Session session = sessionRepository.findById(req.sessionId()).orElseThrow(
+//                () -> new ApiException(ErrorCode.NOT_FOUND_SESSION)
+//        );
 
-        Participant participant = participantRepository.findBySessionAndMember(session, member).orElseThrow(
-                () -> new ApiException(ErrorCode.NOT_PARTICIPANT)
-        );
+//        Participant participant = participantRepository.findBySessionAndMember(session, member).orElseThrow(
+//                () -> new ApiException(ErrorCode.NOT_PARTICIPANT)
+//        );
 
         PenRedisDTO dto = new PenRedisDTO(
                 req.tool(),
@@ -121,16 +121,17 @@ public class DecorateService {
                         .toList()
         );
 
-        penRedisRepository.saveStroke(req.sessionId(), memberId, dto);
+        penRedisRepository.saveStroke(req.roomId(), memberId, dto);
 
         DecoratePenResponseDTO res = new DecoratePenResponseDTO(
-                req.tool().name().toLowerCase(), // "pen" or "eraser"
+                "DECOR_PEN",
+                req.tool() ,// "pen" or "eraser"
                 req.color(),
                 req.lineWidth(),
                 req.points().stream()
                         .map(p -> new DecoratePenResponseDTO.Point(p.x(), p.y()))
-                        .toList(),
-                req.tool() // enum 그대로 응답
+                        .toList()
+
         );
 
         return res;

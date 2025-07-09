@@ -11,12 +11,12 @@ public class PenRedisRepository {
 
     private final RedisTemplate<String, Object> redisTemplate;
 
-    public void saveStroke(Long sessionId, Long memberId, PenRedisDTO dto) {
-        String key = generateKey(sessionId, memberId);
+    public void saveStroke(Long roomId, Long memberId, PenRedisDTO dto) {
+        String key = generateKey(roomId, memberId);
         redisTemplate.opsForValue().set(key, dto);
     }
 
-    private String generateKey(Long sessionId, Long memberId) {
-        return "decorate:pen:" + sessionId + ":" + memberId;
+    private String generateKey(Long roomId, Long memberId) {
+        return "decorate:pen:" + roomId + ":" + memberId;
     }
 }

@@ -4,10 +4,10 @@ import java.util.List;
 
 public record DecoratePenResponseDTO(
         String type,
+        Tool tool,
         String color,
         Integer lineWidth,
-        List<Point> points,
-        Tool tool
+        List<Point> points
 ) {
     public record Point(
             int x,

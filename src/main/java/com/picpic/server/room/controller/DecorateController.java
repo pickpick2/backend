@@ -30,7 +30,7 @@ public class DecorateController {
     public void stroke(Principal principal, DecoratePenRequestDTO penRequestDTO) {
         Long memberId = Long.parseLong(principal.getName());
         DecoratePenResponseDTO res = decorateService.draw(memberId,penRequestDTO);
-        messagingTemplate.convertAndSend("/topic/" + penRequestDTO.sessionCode(), res);
+        messagingTemplate.convertAndSend("/app/" + penRequestDTO.roomId(), res);
     }
 
     @MessageMapping("/decor/sticker")
