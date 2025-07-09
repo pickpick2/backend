@@ -79,10 +79,13 @@ public class WebSocketEventListener {
 	private void sendMemberEventToRoom(String roomId, String nickname, String notingType) {
 
 		Map<String, Object> response = new HashMap<>();
+		Map<String, Object> data = new HashMap<>();
+
+		data.put("nickname", nickname);
 
 		response.put("type", notingType);
-		response.put("nickname", nickname);
+		response.put("data", data);
 
-		messagingTemplate.convertAndSend("/topic/room/" + roomId + "/capacity", response);
+		messagingTemplate.convertAndSend("/topic/room/" + roomId, response);
 	}
 }
