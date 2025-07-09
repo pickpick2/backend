@@ -36,22 +36,23 @@ public class DecorateService {
 			() -> new ApiException(ErrorCode.NOT_FOUND_MEMBER)
 		);
 
-		Session session = sessionRepository.findById(req.sessionId()).orElseThrow(
-			() -> new ApiException(ErrorCode.NOT_FOUND_SESSION)
-		);
-
-		Participant participant = participantRepository.findBySessionAndMember(session, member).orElseThrow(
-			() -> new ApiException(ErrorCode.NOT_PARTICIPANT)
-		);
+//		Session session = sessionRepository.findById(req.sessionId()).orElseThrow(
+//			() -> new ApiException(ErrorCode.NOT_FOUND_SESSION)
+//		);
+//
+//		Participant participant = participantRepository.findBySessionAndMember(session, member).orElseThrow(
+//			() -> new ApiException(ErrorCode.NOT_PARTICIPANT)
+//		);
 
 		Sticker sticker = stickerRepository.findById(req.stickerId()).orElseThrow(
 			() -> new ApiException(ErrorCode.NO_STICKER)
 		);
 
-		Long stickerInstanceId = stickerRedisRepository.saveSticker(req.sessionId(), req.stickerId(), memberId,
+		Long stickerInstanceId = stickerRedisRepository.saveSticker(req.roomId(), req.stickerId(), memberId,
 			req.points());
 
         return new DecorateStickerResponseDTO(
+                "DECOR_STICKER",
                 stickerInstanceId,
                 req.stickerId(),
                 req.points().stream()
@@ -142,20 +143,21 @@ public class DecorateService {
                 () -> new ApiException(ErrorCode.NOT_FOUND_MEMBER)
         );
 
-        Session session = sessionRepository.findById(req.sessionId()).orElseThrow(
-                () -> new ApiException(ErrorCode.NOT_FOUND_SESSION)
-        );
+//        Session session = sessionRepository.findById(req.sessionId()).orElseThrow(
+//                () -> new ApiException(ErrorCode.NOT_FOUND_SESSION)
+//        );
+//
+//        Participant participant = participantRepository.findBySessionAndMember(session, member).orElseThrow(
+//                () -> new ApiException(ErrorCode.NOT_PARTICIPANT)
+//        );
 
-        Participant participant = participantRepository.findBySessionAndMember(session, member).orElseThrow(
-                () -> new ApiException(ErrorCode.NOT_PARTICIPANT)
-        );
-
-        stickerRedisRepository.updateStickerPosition(req.sessionId(), req.stickerInstanceId(), req.newPoints());
+        stickerRedisRepository.updateStickerPosition(req.roomId(), req.stickerInstanceId(), req.points());
 
         return new DecorateStickerResponseDTO(
+                "DECOR_STICKER_UPDATE",
                 req.stickerInstanceId(),
                 req.stickerId(),
-                req.newPoints().stream()
+                req.points().stream()
                         .map(p -> new DecorateStickerResponseDTO.Point(p.x(), p.y()))
                         .toList()
         );
@@ -166,17 +168,19 @@ public class DecorateService {
                 () -> new ApiException(ErrorCode.NOT_FOUND_MEMBER)
         );
 
-        Session session = sessionRepository.findById(req.sessionId()).orElseThrow(
-                () -> new ApiException(ErrorCode.NOT_FOUND_SESSION)
-        );
+//        Session session = sessionRepository.findById(req.roomId()).orElseThrow(
+//                () -> new ApiException(ErrorCode.NOT_FOUND_SESSION)
+//        );
+//
+//        Participant participant = participantRepository.findBySessionAndMember(session, member).orElseThrow(
+//                () -> new ApiException(ErrorCode.NOT_PARTICIPANT)
+//        );
 
-        Participant participant = participantRepository.findBySessionAndMember(session, member).orElseThrow(
-                () -> new ApiException(ErrorCode.NOT_PARTICIPANT)
-        );
+        stickerRedisRepository.deleteSticker(req.roomId(), req.stickerInstanceId());
 
-        stickerRedisRepository.deleteSticker(req.sessionId(), req.stickerInstanceId());
-
-        return new DeletedStickerResponseDTO(req.stickerInstanceId());
+        return new DeletedStickerResponseDTO(
+                "DECOR_STICKER_REMOVE",
+                req.stickerInstanceId());
     }
 
     @Transactional

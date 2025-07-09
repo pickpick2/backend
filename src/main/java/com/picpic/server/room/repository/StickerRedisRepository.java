@@ -15,8 +15,8 @@ public class StickerRedisRepository {
     private final RedisTemplate<String, Object> redisTemplate;
 
     // 스티커 저장 (고유 stickerInstanceId 생성)
-    public Long saveSticker(Long sessionId, Long stickerId, Long memberId, List<DecorateStickerRequestDTO.Point> points) {
-        String key = generateKey(sessionId);
+    public Long saveSticker(Long roomId, Long stickerId, Long memberId, List<DecorateStickerRequestDTO.Point> points) {
+        String key = generateKey(roomId);
         Long stickerInstanceId = redisTemplate.opsForValue().increment("sticker:instance:id");
 
         StickerRedisDTO dto = new StickerRedisDTO(stickerInstanceId, stickerId, memberId, points);
@@ -25,8 +25,8 @@ public class StickerRedisRepository {
     }
 
     // 스티커 위치 수정
-    public void updateStickerPosition(Long sessionId, Long stickerInstanceId, List<DecorateStickerRequestDTO.Point> newPoints) {
-        String key = generateKey(sessionId);
+    public void updateStickerPosition(Long roomId, Long stickerInstanceId, List<DecorateStickerRequestDTO.Point> newPoints) {
+        String key = generateKey(roomId);
         List<Object> rawList = redisTemplate.opsForList().range(key, 0, -1);
         if (rawList == null) return;
 
@@ -46,8 +46,8 @@ public class StickerRedisRepository {
     }
 
     // 스티커 삭제
-    public void deleteSticker(Long sessionId, Long stickerInstanceId) {
-        String key = generateKey(sessionId);
+    public void deleteSticker(Long roomId, Long stickerInstanceId) {
+        String key = generateKey(roomId);
         List<Object> rawList = redisTemplate.opsForList().range(key, 0, -1);
         if (rawList == null) return;
 
@@ -60,7 +60,7 @@ public class StickerRedisRepository {
     }
 
     // Redis 키 생성
-    private String generateKey(Long sessionId) {
-        return "sticker:" + sessionId;
+    private String generateKey(Long roomId) {
+        return "sticker:" + roomId;
     }
 }
