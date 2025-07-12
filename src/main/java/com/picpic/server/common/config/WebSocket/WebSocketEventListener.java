@@ -12,6 +12,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.socket.messaging.SessionConnectEvent;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
+import com.picpic.server.common.exception.WsErrorCode;
+import com.picpic.server.common.exception.WsException;
 import com.picpic.server.common.security.MemberPrincipalDetail;
 import com.picpic.server.room.service.usecase.RedisRoomCommandUseCase;
 
@@ -39,11 +41,12 @@ public class WebSocketEventListener {
 			= user instanceof MemberPrincipalDetail ? (MemberPrincipalDetail)user : null;
 
 		if (roomId == null) {
-			throw new RuntimeException("Room not found. : " + roomId);
+			throw new WsException(WsErrorCode.NOT_FOUND_ROOM);
+
 		}
 
 		if (memberPrincipal == null) {
-			throw new RuntimeException("Member information is missing.");
+			throw new WsException(WsErrorCode.MISSING_MEMBER_INFO);
 		}
 
 		redisRoomCommand.addMember(roomId, memberPrincipal);
@@ -63,6 +66,11 @@ public class WebSocketEventListener {
 		StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
 		String sessionId = headerAccessor.getSessionId();
 		Principal user = headerAccessor.getUser();
+
+		if(user == null) {
+			return;
+		}
+
 		String roomId = redisTemplate.opsForValue().get(user.getName() + ":roomId").toString();
 
 		MemberPrincipalDetail memberPrincipal

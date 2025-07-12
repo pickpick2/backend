@@ -1,17 +1,23 @@
 package com.picpic.server.common.config.WebSocket.interceptor;
 
-import com.picpic.server.common.security.MemberPrincipalDetail;
-import com.picpic.server.room.service.usecase.RedisRoomQueryUseCase;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import static com.picpic.server.common.exception.WsErrorCode.*;
+
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.stereotype.Component;
+
+import com.picpic.server.common.exception.WsException;
+import com.picpic.server.common.security.MemberPrincipalDetail;
+import com.picpic.server.room.service.usecase.RedisRoomQueryUseCase;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component
@@ -39,8 +45,8 @@ public class RoomValidationInterceptor implements ChannelInterceptor {
 
             try {
                 validateAlreadyEnter(token);
-                validateRoomCapacity(roomId);
                 validateRoomExist(roomId);
+                validateRoomCapacity(roomId);
 
                 MemberPrincipalDetail principal = new MemberPrincipalDetail(
                         Long.parseLong(token),
@@ -50,10 +56,8 @@ public class RoomValidationInterceptor implements ChannelInterceptor {
                 accessor.setUser(principal);
 
                 log.info("[STOMP] CONNECT approved - userId: {}, roomId: {}", token, roomId);
-            } catch (Exception e) {
-                log.warn("[STOMP] CONNECT rejected - {}", e.getMessage());
-
-                return null;
+            } catch (WsException e) {
+                throw new MessagingException(e.getMessage(), e);
             }
         }
 
@@ -62,13 +66,13 @@ public class RoomValidationInterceptor implements ChannelInterceptor {
 
     private void validateRoomExist(String roomId) {
         if(!redisRoomQueryUseCase.exist(roomId)) {
-            throw new RuntimeException("Room not found. : "+roomId);
+            throw new WsException(NOT_FOUND_ROOM);
         }
     }
 
     private void validateAlreadyEnter(String userId) {
         if(redisTemplate.opsForValue().get(userId+":roomId") != null) {
-            throw new RuntimeException("You are already connected to a room.");
+            throw new WsException(ALREADY_CONNECTED);
         }
     }
 
@@ -78,7 +82,7 @@ public class RoomValidationInterceptor implements ChannelInterceptor {
         Integer currentMemberNum = redisRoomQueryUseCase.searchMember(roomId).size();
 
         if(currentMemberNum >= roomCapacity ) {
-            throw new RuntimeException("The room capacity is greater than the room capacity.");
+            throw new WsException(EXCEED_ROOM_CAPACITY);
         }
     }
 }
