@@ -3,6 +3,9 @@ package com.picpic.server.room.service.redis;
 import org.springframework.stereotype.Component;
 
 import com.picpic.server.common.auth.MemberPrincipalDetail;
+
+import com.picpic.server.common.exception.WsErrorCode;
+import com.picpic.server.common.exception.WsException;
 import com.picpic.server.room.domain.RoomMember;
 import com.picpic.server.room.entity.RoomRedisEntity;
 import com.picpic.server.room.repository.RoomRedisRepository;
@@ -33,10 +36,10 @@ public class RedisRoomCommand implements RedisRoomCommandUseCase {
 		roomRedisRepository.deleteById(roomId);
 	}
 
-	@Override
-	public void addMember(String roomId, MemberPrincipalDetail memberPrincipalDetail) {
-		RoomRedisEntity roomEntity = roomRedisRepository.findById(roomId)
-			.orElseThrow(() -> new RuntimeException("Room not found. :" + roomId));
+    @Override
+    public void addMember(String roomId, MemberPrincipalDetail memberPrincipalDetail) {
+        RoomRedisEntity roomEntity = roomRedisRepository.findById(roomId)
+                .orElseThrow(() -> new WsException(WsErrorCode.NOT_FOUND_ROOM));
 
 		RoomMember newMember = RoomMember.from(memberPrincipalDetail);
 		RoomRedisEntity updatedEntity = roomEntity.addMember(newMember);
@@ -44,20 +47,20 @@ public class RedisRoomCommand implements RedisRoomCommandUseCase {
 		roomRedisRepository.save(updatedEntity);
 	}
 
-	@Override
-	public void subtractMember(String roomId, Long memberId) {
-		RoomRedisEntity roomEntity = roomRedisRepository.findById(roomId)
-			.orElseThrow(() -> new RuntimeException("Room not found. :" + roomId));
+    @Override
+    public void subtractMember(String roomId, Long memberId) {
+        RoomRedisEntity roomEntity = roomRedisRepository.findById(roomId)
+                .orElseThrow(() -> new WsException(WsErrorCode.NOT_FOUND_ROOM));
 
 		RoomRedisEntity updatedEntity = roomEntity.subtractMember(memberId);
 
 		roomRedisRepository.save(updatedEntity);
 	}
 
-	@Override
-	public void updateRoomCapacity(String roomId, Integer roomCapacity) {
-		RoomRedisEntity roomEntity = roomRedisRepository.findById(roomId)
-			.orElseThrow(() -> new RuntimeException("Room not found. :" + roomId));
+    @Override
+    public void updateRoomCapacity(String roomId, Integer roomCapacity) {
+        RoomRedisEntity roomEntity = roomRedisRepository.findById(roomId)
+                .orElseThrow(() -> new WsException(WsErrorCode.NOT_FOUND_ROOM));
 
 		RoomRedisEntity updatedRoom = roomEntity.toBuilder()
 			.roomCapacity(roomCapacity)
