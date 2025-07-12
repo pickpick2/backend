@@ -6,6 +6,10 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.picpic.server.common.exception.ApiException;
+import com.picpic.server.common.exception.ErrorCode;
+import com.picpic.server.member.entity.Member;
+
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,15 +28,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		String token = jwtTokenProvider.resolveToken(request);
 
 		if (token == null) {
-			//TODO: 공용 응답 처리
-			return;
+			throw new ApiException(ErrorCode.UNAUTHORIZED);
 		}
 
 		jwtTokenProvider.validateToken(token);
 		Long memberId = jwtTokenProvider.getMemberId(token);
+		String nickname = jwtTokenProvider.getNickname(token);
+		Member.Role role = jwtTokenProvider.getRole(token);
+
+		MemberPrincipalDetail principal = MemberPrincipalDetail.builder()
+			.memberId(memberId)
+			.nickName(nickname)
+			.role(role)
+			.build();
 
 		UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-			memberId,
+			principal,
 			null,
 			null
 		);

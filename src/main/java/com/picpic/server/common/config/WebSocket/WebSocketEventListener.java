@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.socket.messaging.SessionConnectEvent;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
-import com.picpic.server.common.security.MemberPrincipalDetail;
+import com.picpic.server.common.auth.MemberPrincipalDetail;
 import com.picpic.server.room.service.usecase.RedisRoomCommandUseCase;
 
 import lombok.RequiredArgsConstructor;

@@ -2,11 +2,10 @@ package com.picpic.server.room.dto;
 
 import java.util.List;
 
-public record DecorateTextResponseDTO(
+public record DecorateTextMoveRequestDTO(
+        Long sessionId,
+        String sessionCode,
         String textBoxId,
-        String text,
-        String font,
-        String color,
         List<Point> points
 ) {
 
