@@ -35,7 +35,7 @@ public class StompExceptionHandler extends StompSubProtocolErrorHandler {
 		}
 
 		if(wsException != null) {
-			response.put("type", wsException.getErrorCode());
+			response.put("type", wsException.getErrorCode().getCode());
 			response.put("message", wsException.getMessage());
 		}
 
