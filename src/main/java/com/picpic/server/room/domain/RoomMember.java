@@ -1,6 +1,7 @@
 package com.picpic.server.room.domain;
 
 import com.picpic.server.common.auth.MemberPrincipalDetail;
+import com.picpic.server.room.enums.RoomMemberStatus;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -13,10 +14,6 @@ public class RoomMember {
 	Long memberId;
 	String memberName;
 	RoomMemberStatus memberStatus;
-
-	public enum RoomMemberStatus {
-		NONE, CONNECTED, DISCONNECTED
-	}
 
 	public static RoomMember from(MemberPrincipalDetail principalDetail) {
 		return RoomMember.builder()

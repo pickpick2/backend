@@ -1,5 +1,7 @@
 package com.picpic.server.room.service.redis;
 
+import java.util.List;
+
 import org.springframework.stereotype.Component;
 
 import com.picpic.server.common.auth.MemberPrincipalDetail;
@@ -8,6 +10,7 @@ import com.picpic.server.common.exception.WsErrorCode;
 import com.picpic.server.common.exception.WsException;
 import com.picpic.server.room.domain.RoomMember;
 import com.picpic.server.room.entity.RoomRedisEntity;
+import com.picpic.server.room.enums.RoomMemberStatus;
 import com.picpic.server.room.repository.RoomRedisRepository;
 import com.picpic.server.room.service.usecase.RedisRoomCommandUseCase;
 
@@ -67,5 +70,32 @@ public class RedisRoomCommand implements RedisRoomCommandUseCase {
 			.build();
 
 		roomRedisRepository.save(updatedRoom);
+	}
+
+	@Override
+	public RoomMember updateReadyState(String roomId, Long memberId, RoomMemberStatus roomMemberStatus) {
+
+		RoomRedisEntity roomEntity = roomRedisRepository.findById(roomId)
+			.orElseThrow(() -> new WsException(WsErrorCode.NOT_FOUND_ROOM));
+
+		List<RoomMember> updatedMembers = roomEntity.getMembers().stream().map(member -> {
+			if (member.getMemberId().equals(memberId)) {
+				member.setMemberStatus(roomMemberStatus);
+			}
+			return member;
+		}).toList();
+
+		RoomRedisEntity updatedRoomEntity = roomEntity.toBuilder()
+			.members(updatedMembers)
+			.build();
+
+		RoomRedisEntity save = roomRedisRepository.save(updatedRoomEntity);
+
+		RoomMember roomMember = save.getMembers().stream()
+			.filter(member -> member.getMemberId().equals(memberId))
+			.findFirst()
+			.get();
+
+		return roomMember;
 	}
 }
