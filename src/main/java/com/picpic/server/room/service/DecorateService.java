@@ -76,24 +76,27 @@ public class DecorateService {
 			() -> new ApiException(ErrorCode.NOT_FOUND_MEMBER)
 		);
 
-		Session session = sessionRepository.findById(req.sessionId()).orElseThrow(
-			() -> new ApiException(ErrorCode.NOT_FOUND_SESSION)
-		);
-
-		Participant participant = participantRepository.findBySessionAndMember(session, member).orElseThrow(
-			() -> new ApiException(ErrorCode.NOT_PARTICIPANT)
-		);
+//		Session session = sessionRepository.findById(req.sessionId()).orElseThrow(
+//			() -> new ApiException(ErrorCode.NOT_FOUND_SESSION)
+//		);
+//
+//		Participant participant = participantRepository.findBySessionAndMember(session, member).orElseThrow(
+//			() -> new ApiException(ErrorCode.NOT_PARTICIPANT)
+//		);
 
         String textBoxId = UUID.randomUUID().toString();
 
         textRedisRepository.saveText(
-                req.sessionId(),
+                req.roomId(),
                 textBoxId,
                 req.text(),
                 req.font(),
+                req.fontSize(),
                 req.color(),
-                memberId,
-                req.points()
+                req.x(),
+                req.y(),
+                memberId
+
         );
 
         DecorateTextResponseDTO res = new DecorateTextResponseDTO(
@@ -101,9 +104,10 @@ public class DecorateService {
                 req.text(),
                 req.font(),
                 req.color(),
-                req.points().stream()
-                        .map(p -> new DecorateTextResponseDTO.Point(p.x(), p.y()))
-                        .toList()
+                req.x(),
+                req.y(),
+                req.fontSize()
+
         );
 
         return res;
@@ -203,27 +207,30 @@ public class DecorateService {
                 () -> new ApiException(ErrorCode.NOT_FOUND_MEMBER)
         );
 
-        Session session = sessionRepository.findById(req.sessionId()).orElseThrow(
-                () -> new ApiException(ErrorCode.NOT_FOUND_SESSION)
-        );
+//        Session session = sessionRepository.findById(req.sessionId()).orElseThrow(
+//                () -> new ApiException(ErrorCode.NOT_FOUND_SESSION)
+//        );
+//
+//        Participant participant = participantRepository.findBySessionAndMember(session, member).orElseThrow(
+//                () -> new ApiException(ErrorCode.NOT_PARTICIPANT)
+//        );
 
-        Participant participant = participantRepository.findBySessionAndMember(session, member).orElseThrow(
-                () -> new ApiException(ErrorCode.NOT_PARTICIPANT)
-        );
 
-
-        TextRedisDTO existing = textRedisRepository.findText(req.sessionId(), req.textBoxId())
+        TextRedisDTO existing = textRedisRepository.findText(req.roomId(), req.textBoxId())
                 .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND_TEXT));
 
         TextRedisDTO updated = new TextRedisDTO(
                 req.textBoxId(),
                 req.newText(),
                 req.newFont(),
+                req.newFontSize(),
                 req.newColor(),
-                existing.points()
+                existing.x(),
+                existing.y()
+
         );
 
-        textRedisRepository.updateText(req.sessionId(), updated);
+        textRedisRepository.updateText(req.roomId(), updated);
 
 
         return new DecorateTextResponseDTO(
@@ -231,9 +238,9 @@ public class DecorateService {
                 updated.text(),
                 updated.font(),
                 updated.color(),
-                updated.points().stream()
-                        .map(p -> new DecorateTextResponseDTO.Point(p.x(), p.y()))
-                        .toList()
+                updated.x(),
+                updated.y(),
+                updated.fontSize()
         );
     }
 
@@ -243,25 +250,19 @@ public class DecorateService {
                 () -> new ApiException(ErrorCode.NOT_FOUND_MEMBER)
         );
 
-        Session session = sessionRepository.findById(req.sessionId()).orElseThrow(
-                () -> new ApiException(ErrorCode.NOT_FOUND_SESSION)
-        );
+//        Session session = sessionRepository.findById(req.sessionId()).orElseThrow(
+//                () -> new ApiException(ErrorCode.NOT_FOUND_SESSION)
+//        );
+//
+//        Participant participant = participantRepository.findBySessionAndMember(session, member).orElseThrow(
+//                () -> new ApiException(ErrorCode.NOT_PARTICIPANT)
+//        );
 
-        Participant participant = participantRepository.findBySessionAndMember(session, member).orElseThrow(
-                () -> new ApiException(ErrorCode.NOT_PARTICIPANT)
-        );
 
-
-        TextRedisDTO existing = textRedisRepository.findText(req.sessionId(), req.textBoxId())
+        TextRedisDTO existing = textRedisRepository.findText(req.roomId(), req.textBoxId())
                 .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND_TEXT));
 
-
-        List<TextRedisDTO.Point> newPoints = req.points().stream()
-                .map(p -> new TextRedisDTO.Point(p.x(), p.y()))
-                .toList();
-
-
-        textRedisRepository.updateTextPosition(req.sessionId(), req.textBoxId(), newPoints);
+        textRedisRepository.updateTextPosition(req.roomId(), req.textBoxId(), req.x(), req.y());
 
 
         return new DecorateTextResponseDTO(
@@ -269,9 +270,10 @@ public class DecorateService {
                 existing.text(),
                 existing.font(),
                 existing.color(),
-                newPoints.stream()
-                        .map(p -> new DecorateTextResponseDTO.Point(p.x(), p.y()))
-                        .toList()
+                req.x(),
+                req.y(),
+                existing.fontSize()
+
         );
     }
 
@@ -281,18 +283,18 @@ public class DecorateService {
                 () -> new ApiException(ErrorCode.NOT_FOUND_MEMBER)
         );
 
-        Session session = sessionRepository.findById(req.sessionId()).orElseThrow(
-                () -> new ApiException(ErrorCode.NOT_FOUND_SESSION)
-        );
+//        Session session = sessionRepository.findById(req.sessionId()).orElseThrow(
+//                () -> new ApiException(ErrorCode.NOT_FOUND_SESSION)
+//        );
+//
+//        Participant participant = participantRepository.findBySessionAndMember(session, member).orElseThrow(
+//                () -> new ApiException(ErrorCode.NOT_PARTICIPANT)
+//        );
 
-        Participant participant = participantRepository.findBySessionAndMember(session, member).orElseThrow(
-                () -> new ApiException(ErrorCode.NOT_PARTICIPANT)
-        );
-
-        TextRedisDTO existing = textRedisRepository.findText(req.sessionId(), req.textBoxId())
+        TextRedisDTO existing = textRedisRepository.findText(req.roomId(), req.textBoxId())
                 .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND_TEXT));
 
-            textRedisRepository.deleteText(req.sessionId(), req.textBoxId());
+            textRedisRepository.deleteText(req.roomId(), req.textBoxId());
 
         // 4. 응답용 객체 반환 (삭제됐지만 어떤 게 삭제됐는지 알려줌)
         return new DeletedTextResponseDTO(req.textBoxId());

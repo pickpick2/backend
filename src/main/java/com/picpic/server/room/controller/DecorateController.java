@@ -82,7 +82,7 @@ public class DecorateController {
     public void removeText(Principal principal, DecorateTextDeleteRequestDTO request) {
         Long memberId = Long.parseLong(principal.getName());
         DeletedTextResponseDTO res = decorateService.removeText(memberId, request);
-        messagingTemplate.convertAndSend("/app/" + request.sessionCode(), res);
+        messagingTemplate.convertAndSend("/app/" + request.roomId(), res);
     }
 
 
