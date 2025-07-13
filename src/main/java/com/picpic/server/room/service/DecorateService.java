@@ -115,23 +115,20 @@ public class DecorateService {
         PenRedisDTO dto = new PenRedisDTO(
                 req.tool(),
                 req.color(),
-                req.lineWidth(),
-                req.points().stream()
-                        .map(p -> new PenRedisDTO.Point(p.x(), p.y()))
-                        .toList()
+                req.strokeWidth(),
+                req.x(),
+                req.y()
         );
 
         penRedisRepository.saveStroke(req.roomId(), memberId, dto);
 
         DecoratePenResponseDTO res = new DecoratePenResponseDTO(
                 "DECOR_PEN",
-                req.tool() ,// "pen" or "eraser"
+                req.tool() ,
                 req.color(),
-                req.lineWidth(),
-                req.points().stream()
-                        .map(p -> new DecoratePenResponseDTO.Point(p.x(), p.y()))
-                        .toList()
-
+                req.strokeWidth(),
+                req.x(),
+                req.y()
         );
 
         return res;
