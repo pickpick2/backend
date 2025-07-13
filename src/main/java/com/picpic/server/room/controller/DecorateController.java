@@ -8,6 +8,7 @@ import com.picpic.server.room.dto.DecorateStickerResponseDTO;
 import com.picpic.server.room.dto.DecorateTextRequestDTO;
 import com.picpic.server.room.dto.DecorateTextResponseDTO;
 import com.picpic.server.room.service.DecorateService;
+import org.apache.tomcat.websocket.WsHandshakeResponse;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import lombok.RequiredArgsConstructor;
@@ -60,28 +61,28 @@ public class DecorateController {
     public void text(Principal principal, DecorateTextRequestDTO textRequestDTO) {
         Long memberId = Long.parseLong(principal.getName());
         DecorateTextResponseDTO res = decorateService.putText(memberId,textRequestDTO);
-        messagingTemplate.convertAndSend("/topic/" + textRequestDTO.sessionCode(), res);
+        messagingTemplate.convertAndSend("/app/" + textRequestDTO.roomId(),res);
     }
 
     @MessageMapping("/decor/text/update")
     public void updateText(Principal principal, DecorateTextUpdateRequestDTO request) {
         Long memberId = Long.parseLong(principal.getName());
         DecorateTextResponseDTO res = decorateService.updateText(memberId, request);
-        messagingTemplate.convertAndSend("/topic/" + request.sessionCode(), res);
+        messagingTemplate.convertAndSend("/app/" + request.roomId(), res);
     }
 
     @MessageMapping("/decor/text/move")
     public void moveText(Principal principal, DecorateTextMoveRequestDTO request) {
         Long memberId = Long.parseLong(principal.getName());
         DecorateTextResponseDTO res = decorateService.moveText(memberId, request);
-        messagingTemplate.convertAndSend("/topic/" + request.sessionCode(), res);
+        messagingTemplate.convertAndSend("/app/" + request.roomId(), res);
     }
 
     @MessageMapping("/decor/text/remove")
     public void removeText(Principal principal, DecorateTextDeleteRequestDTO request) {
         Long memberId = Long.parseLong(principal.getName());
         DeletedTextResponseDTO res = decorateService.removeText(memberId, request);
-        messagingTemplate.convertAndSend("/topic/" + request.sessionCode(), res);
+        messagingTemplate.convertAndSend("/app/" + request.sessionCode(), res);
     }
 
 

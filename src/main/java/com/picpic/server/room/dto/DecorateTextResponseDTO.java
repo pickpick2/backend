@@ -7,12 +7,10 @@ public record DecorateTextResponseDTO(
         String text,
         String font,
         String color,
-        List<Point> points
+        Integer x,
+        Integer y,
+        Integer fontSize
+
 ) {
 
-    public record Point(
-            int x,
-            int y
-    ) {
-    }
 }

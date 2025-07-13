@@ -3,17 +3,12 @@ package com.picpic.server.room.dto;
 import java.util.List;
 
 public record DecorateTextRequestDTO(
-        Long sessionId,
-        String sessionCode,
+        Long roomId,
         String text,
         String font,
+        Integer fontSize,
         String color,
-        List<Point> points
+        Integer x,
+        Integer y
 ) {
-
-    public record Point(
-            int x,
-            int y
-    ) {
-    }
 }
