@@ -1,5 +1,7 @@
 package com.picpic.server.room.repository;
 
+import com.picpic.server.common.exception.ApiException;
+import com.picpic.server.common.exception.ErrorCode;
 import com.picpic.server.room.dto.DecorateStickerRequestDTO;
 import com.picpic.server.room.dto.StickerRedisDTO;
 import lombok.RequiredArgsConstructor;
@@ -15,34 +17,48 @@ public class StickerRedisRepository {
     private final RedisTemplate<String, Object> redisTemplate;
 
     // 스티커 저장 (고유 stickerInstanceId 생성)
-    public Long saveSticker(Long roomId, Long stickerId, Long memberId, List<DecorateStickerRequestDTO.Point> points) {
+    public Long saveSticker(Long roomId, Long stickerId, Long memberId,
+                            Integer x, Integer y, Integer width, Integer height, Integer scale) {
         String key = generateKey(roomId);
         Long stickerInstanceId = redisTemplate.opsForValue().increment("sticker:instance:id");
 
-        StickerRedisDTO dto = new StickerRedisDTO(stickerInstanceId, stickerId, memberId, points);
+        // Redis에 저장할 DTO 구성
+        StickerRedisDTO dto = new StickerRedisDTO(
+                stickerInstanceId,
+                stickerId,
+                memberId,
+                x, y, width, height, scale
+        );
+
         redisTemplate.opsForList().rightPush(key, dto);
         return stickerInstanceId;
     }
 
     // 스티커 위치 수정
-    public void updateStickerPosition(Long roomId, Long stickerInstanceId, List<DecorateStickerRequestDTO.Point> newPoints) {
+    public StickerRedisDTO updateStickerPosition(Long roomId, Long stickerInstanceId, Integer x, Integer y) {
         String key = generateKey(roomId);
-        List<Object> rawList = redisTemplate.opsForList().range(key, 0, -1);
-        if (rawList == null) return;
+        List<Object> stickers = redisTemplate.opsForList().range(key, 0, -1);
 
-        for (int i = 0; i < rawList.size(); i++) {
-            Object item = rawList.get(i);
-            if (item instanceof StickerRedisDTO dto && dto.stickerInstanceId().equals(stickerInstanceId)) {
+        for (int i = 0; i < stickers.size(); i++) {
+            StickerRedisDTO dto = (StickerRedisDTO) stickers.get(i);
+            if (dto.stickerInstanceId().equals(stickerInstanceId)) {
                 StickerRedisDTO updated = new StickerRedisDTO(
                         dto.stickerInstanceId(),
                         dto.stickerId(),
                         dto.memberId(),
-                        newPoints
+                        x,
+                        y,
+                        dto.width(),
+                        dto.height(),
+                        dto.scale()
                 );
+
                 redisTemplate.opsForList().set(key, i, updated);
-                break;
+                return updated;
             }
         }
+
+        throw new ApiException(ErrorCode.NO_STICKER); // 못 찾은 경우
     }
 
     // 스티커 삭제

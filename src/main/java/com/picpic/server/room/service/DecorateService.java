@@ -48,16 +48,26 @@ public class DecorateService {
 			() -> new ApiException(ErrorCode.NO_STICKER)
 		);
 
-		Long stickerInstanceId = stickerRedisRepository.saveSticker(req.roomId(), req.stickerId(), memberId,
-			req.points());
+		Long stickerInstanceId = stickerRedisRepository.saveSticker(
+                req.roomId(),
+                req.stickerId(),
+                memberId,
+                req.x(),
+                req.y(),
+                req.width(),
+                req.height(),
+                req.scale()
+        );
 
         return new DecorateStickerResponseDTO(
                 "DECOR_STICKER",
                 stickerInstanceId,
                 req.stickerId(),
-                req.points().stream()
-                        .map(p -> new DecorateStickerResponseDTO.Point(p.x(), p.y()))
-                        .toList()
+                req.x(),
+                req.y(),
+                req.width(),
+                req.height(),
+                req.scale()
         );
     }
 
@@ -148,15 +158,22 @@ public class DecorateService {
 //                () -> new ApiException(ErrorCode.NOT_PARTICIPANT)
 //        );
 
-        stickerRedisRepository.updateStickerPosition(req.roomId(), req.stickerInstanceId(), req.points());
+        StickerRedisDTO updatedSticker = stickerRedisRepository.updateStickerPosition(
+                req.roomId(),
+                req.stickerInstanceId(),
+                req.x(),
+                req.y()
+        );
 
         return new DecorateStickerResponseDTO(
                 "DECOR_STICKER_UPDATE",
-                req.stickerInstanceId(),
-                req.stickerId(),
-                req.points().stream()
-                        .map(p -> new DecorateStickerResponseDTO.Point(p.x(), p.y()))
-                        .toList()
+                updatedSticker.stickerInstanceId(),
+                updatedSticker.stickerId(),
+                updatedSticker.x(),
+                updatedSticker.y(),
+                updatedSticker.width(),
+                updatedSticker.height(),
+                updatedSticker.scale()
         );
     }
 

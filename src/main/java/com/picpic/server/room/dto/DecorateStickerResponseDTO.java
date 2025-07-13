@@ -6,13 +6,11 @@ public record DecorateStickerResponseDTO(
         String type,
         Long stickerInstanceId,
         Long stickerId,
-        List<Point> points
+        Integer x,
+        Integer y,
+        Integer width,
+        Integer height,
+        Integer scale
 
 ) {
-
-    public record Point(
-            int x,
-            int y
-    ) {
-    }
 }
