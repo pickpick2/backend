@@ -6,12 +6,8 @@ public record DecoratePenResponseDTO(
         String type,
         Tool tool,
         String color,
-        Integer lineWidth,
-        List<Point> points
+        Integer strokeWidth,
+        Integer x,
+        Integer y
 ) {
-    public record Point(
-            int x,
-            int y
-    ) {}
-
 }

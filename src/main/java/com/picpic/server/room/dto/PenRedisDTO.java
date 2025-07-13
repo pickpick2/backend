@@ -5,8 +5,8 @@ import java.util.List;
 public record PenRedisDTO(
         Tool tool,
         String color,
-        Integer lineWidth,
-        List<Point> points
+        Integer strokeWidth,
+        Integer x,
+        Integer y
 ) {
-    public record Point(int x, int y) {}
 }
