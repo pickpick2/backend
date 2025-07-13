@@ -13,6 +13,7 @@ import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.stereotype.Component;
 
 import com.picpic.server.common.exception.WsException;
+import com.picpic.server.member.entity.Member;
 import com.picpic.server.room.service.usecase.RedisRoomQueryUseCase;
 
 import lombok.RequiredArgsConstructor;
