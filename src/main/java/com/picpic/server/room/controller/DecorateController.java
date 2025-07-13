@@ -61,28 +61,28 @@ public class DecorateController {
     public void text(Principal principal, DecorateTextRequestDTO textRequestDTO) {
         Long memberId = Long.parseLong(principal.getName());
         DecorateTextResponseDTO res = decorateService.putText(memberId,textRequestDTO);
-        messagingTemplate.convertAndSend("/app/" + textRequestDTO.roomId(),res);
+        messagingTemplate.convertAndSend("/app/" + textRequestDTO.roomId(),WsResponse.Success("DECOR_TEXT", res));
     }
 
     @MessageMapping("/decor/text/update")
     public void updateText(Principal principal, DecorateTextUpdateRequestDTO request) {
         Long memberId = Long.parseLong(principal.getName());
         DecorateTextResponseDTO res = decorateService.updateText(memberId, request);
-        messagingTemplate.convertAndSend("/app/" + request.roomId(), res);
+        messagingTemplate.convertAndSend("/app/" + request.roomId(), WsResponse.Success("DECOR_TEXT_UPDATE", res));
     }
 
     @MessageMapping("/decor/text/move")
     public void moveText(Principal principal, DecorateTextMoveRequestDTO request) {
         Long memberId = Long.parseLong(principal.getName());
         DecorateTextResponseDTO res = decorateService.moveText(memberId, request);
-        messagingTemplate.convertAndSend("/app/" + request.roomId(), res);
+        messagingTemplate.convertAndSend("/app/" + request.roomId(), WsResponse.Success("DECOR_TEXT_MOVE", res));
     }
 
     @MessageMapping("/decor/text/remove")
     public void removeText(Principal principal, DecorateTextDeleteRequestDTO request) {
         Long memberId = Long.parseLong(principal.getName());
         DeletedTextResponseDTO res = decorateService.removeText(memberId, request);
-        messagingTemplate.convertAndSend("/app/" + request.roomId(), res);
+        messagingTemplate.convertAndSend("/app/" + request.roomId(), WsResponse.Success("DECOR_TEXT_REMOVE", res));
     }
 
 
