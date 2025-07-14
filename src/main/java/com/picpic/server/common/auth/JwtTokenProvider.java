@@ -1,7 +1,6 @@
 package com.picpic.server.common.auth;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.Base64;
 import java.util.Date;
 
@@ -20,7 +19,6 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
@@ -101,13 +99,12 @@ public class JwtTokenProvider {
 	}
 
 	public String resolveToken(HttpServletRequest request) {
-		if (request.getCookies() == null)
-			return null;
+		String authorizationHeader = request.getHeader("Authorization");
 
-		return Arrays.stream(request.getCookies())
-			.filter(cookie -> "access-token".equals(cookie.getName()))
-			.findFirst()
-			.map(Cookie::getValue)
-			.orElse(null);
+		if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+			return null;
+		}
+
+		return authorizationHeader.substring(7);
 	}
 }
