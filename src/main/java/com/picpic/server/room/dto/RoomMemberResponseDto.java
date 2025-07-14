@@ -1,22 +1,20 @@
 package com.picpic.server.room.dto;
 
 import com.picpic.server.room.domain.RoomMember;
+import com.picpic.server.room.enums.RoomMemberStatus;
+
 import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
 
 @Builder
-public record RoomMemberDto (
+public record RoomMemberResponseDto(
         String memberName,
         RoomMemberStatus memberStatus
 ) {
-    public enum RoomMemberStatus {
-        CONNECTED, DISCONNECTED
-    }
 
-    public static RoomMemberDto from(RoomMember roomMember) {
-        return RoomMemberDto.builder()
+    public static RoomMemberResponseDto from(RoomMember roomMember) {
+        return RoomMemberResponseDto.builder()
                 .memberName(roomMember.getMemberName())
+                .memberStatus(roomMember.getMemberStatus())
                 .build();
     }
 }
