@@ -3,18 +3,12 @@ package com.picpic.server.room.dto;
 import java.util.List;
 
 public record DecoratePenRequestDTO(
-        Long sessionId,
-        String sessionCode,
+        Long roomId,
         Tool tool,
         String color,
-        Integer lineWidth,
-        List<Point> points
+        Integer strokeWidth,
+        Integer x,
+        Integer y
 ) {
-
-    public record Point(
-            int x,
-            int y
-    ) {
-    }
 
 }
