@@ -9,7 +9,9 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 
 import com.picpic.server.common.auth.MemberPrincipalDetail;
+import com.picpic.server.common.response.WsResponse;
 import com.picpic.server.room.domain.RoomMember;
+import com.picpic.server.room.dto.ws.GetRoomMemberWsResponseDto;
 import com.picpic.server.room.service.usecase.GetRoomMemberUseCase;
 
 import lombok.RequiredArgsConstructor;
@@ -23,13 +25,13 @@ public class GetRoomMemberWsController {
 	private final GetRoomMemberUseCase getRoomMemberUseCase;
 
 	@MessageMapping("/room/{roomId}/members")
-	@SendToUser("/topic/room/members")
-	public List<RoomMember> getRoom(
+	@SendToUser("/queue/room")
+	public WsResponse<GetRoomMemberWsResponseDto> getRoom(
 		@AuthenticationPrincipal MemberPrincipalDetail memberDetail,
 		@DestinationVariable String roomId
 	) {
 		List<RoomMember> roomMember = getRoomMemberUseCase.getRoomMember(memberDetail.memberId(), roomId);
 
-		return roomMember;
+		return WsResponse.success("ROOM_MEMBER_LIST", GetRoomMemberWsResponseDto.from(roomMember));
 	}
 }
