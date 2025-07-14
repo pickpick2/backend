@@ -6,6 +6,7 @@ import com.picpic.server.common.exception.ErrorCode;
 import com.picpic.server.member.repository.MemberRepository;
 import com.picpic.server.room.dto.*;
 import com.picpic.server.member.entity.Member;
+import com.picpic.server.room.dto.ws.DecorateStickerTransformRequestDTO;
 import com.picpic.server.room.entity.Participant;
 import com.picpic.server.room.entity.Session;
 import com.picpic.server.room.entity.Sticker;
@@ -300,5 +301,29 @@ public class DecorateService {
         return new DeletedTextResponseDTO(req.textBoxId());
     }
 
+    public DecorateStickerResponseDTO transformSticker(Long memberId, DecorateStickerTransformRequestDTO req) {
+        Member member = memberRepository.findById(memberId).orElseThrow(
+                () -> new ApiException(ErrorCode.NOT_FOUND_MEMBER)
+        );
+
+        StickerRedisDTO transformSticker = stickerRedisRepository.transformSticker(
+                req.roomId(),
+                req.stickerInstanceId(),
+                req.scale(),
+                req.rotate()
+        );
+
+        return new DecorateStickerResponseDTO(
+                transformSticker.stickerInstanceId(),
+                transformSticker.stickerId(),
+                transformSticker.x(),
+                transformSticker.y(),
+                transformSticker.width(),
+                transformSticker.height(),
+                transformSticker.scale(),
+                transformSticker.rotate()
+        );
+    }
+    }
 }
 

@@ -11,5 +11,6 @@ public record StickerRedisDTO(
         Integer y,
         Integer width,
         Integer height,
-        Integer scale
+        Integer scale,
+        Integer rotate
 ) implements Serializable {}

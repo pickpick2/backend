@@ -7,6 +7,7 @@ import com.picpic.server.room.dto.DecorateStickerRequestDTO;
 import com.picpic.server.room.dto.DecorateStickerResponseDTO;
 import com.picpic.server.room.dto.DecorateTextRequestDTO;
 import com.picpic.server.room.dto.DecorateTextResponseDTO;
+import com.picpic.server.room.dto.ws.DecorateStickerTransformRequestDTO;
 import com.picpic.server.room.service.DecorateService;
 import org.apache.tomcat.websocket.WsHandshakeResponse;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -83,6 +84,13 @@ public class DecorateController {
         Long memberId = Long.parseLong(principal.getName());
         DeletedTextResponseDTO res = decorateService.removeText(memberId, request);
         messagingTemplate.convertAndSend("/app/" + request.roomId(), WsResponse.Success("DECOR_TEXT_REMOVE", res));
+    }
+
+    @MessageMapping("/decor/sticker/transform")
+    public void removeText(Principal principal, DecorateStickerTransformRequestDTO request) {
+        Long memberId = Long.parseLong(principal.getName());
+        DecorateStickerResponseDTO res = decorateService.transformSticker(memberId, request);
+        messagingTemplate.convertAndSend("/app/" + request.roomId(), WsResponse.Success("DECOR_STICKER_TRANSFORM", res));
     }
 
 
