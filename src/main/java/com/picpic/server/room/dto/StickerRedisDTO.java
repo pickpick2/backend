@@ -7,5 +7,9 @@ public record StickerRedisDTO(
         Long stickerInstanceId,
         Long stickerId,
         Long memberId,
-        List<DecorateStickerRequestDTO.Point> points
+        Integer x,
+        Integer y,
+        Integer width,
+        Integer height,
+        Integer scale
 ) implements Serializable {}

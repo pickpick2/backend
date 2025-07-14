@@ -3,15 +3,9 @@ package com.picpic.server.room.dto;
 import java.util.List;
 
 public record DecorateTextMoveRequestDTO(
-        Long sessionId,
-        String sessionCode,
+        Long roomId,
         String textBoxId,
-        List<Point> points
+        Integer x,
+        Integer y
 ) {
-
-    public record Point(
-            int x,
-            int y
-    ) {
-    }
 }
