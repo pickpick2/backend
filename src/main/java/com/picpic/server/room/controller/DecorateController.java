@@ -32,28 +32,28 @@ public class DecorateController {
     public void stroke(Principal principal, DecoratePenRequestDTO penRequestDTO) {
         Long memberId = Long.parseLong(principal.getName());
         DecoratePenResponseDTO res = decorateService.draw(memberId,penRequestDTO);
-        messagingTemplate.convertAndSend("/app/" + penRequestDTO.roomId(), res);
+        messagingTemplate.convertAndSend("/topic/room/" + penRequestDTO.roomId(), WsResponse.Success("DECOR_PEN", res));
     }
 
     @MessageMapping("/decor/sticker")
     public void sticker(Principal principal, DecorateStickerRequestDTO stickerRequestDTO) {
         Long memberId = Long.parseLong(principal.getName());
         DecorateStickerResponseDTO res = decorateService.sticker(memberId,stickerRequestDTO);
-        messagingTemplate.convertAndSend("/app/" + stickerRequestDTO.roomId(), res);
+        messagingTemplate.convertAndSend("/topic/room/" + stickerRequestDTO.roomId(), WsResponse.Success("DECOR_STICKER", res));
     }
 
     @MessageMapping("/decor/sticker/update")
     public void updateStickerPosition(Principal principal, UpdateStickerPositionRequestDTO dto) {
         Long memberId = Long.parseLong(principal.getName());
         DecorateStickerResponseDTO res = decorateService.updateStickerPosition(memberId, dto);
-        messagingTemplate.convertAndSend("/app/" + dto.roomId(), res);
+        messagingTemplate.convertAndSend("/topic/room/" + dto.roomId(), WsResponse.Success("DECOR_STICKER_UPDATE", res));
     }
 
     @MessageMapping("/decor/sticker/remove")
     public void removeSticker(Principal principal, DeleteStickerRequestDTO reqDto) {
         Long memberId = Long.parseLong(principal.getName());
         DeletedStickerResponseDTO res = decorateService.deleteSticker(memberId, reqDto);
-        messagingTemplate.convertAndSend("/app/" + reqDto.roomId(), res);
+        messagingTemplate.convertAndSend("/topic/room/" + reqDto.roomId(), WsResponse.Success("DECOR_STICKER_REMOVE", res));
     }
 
 
@@ -62,35 +62,35 @@ public class DecorateController {
     public void text(Principal principal, DecorateTextRequestDTO textRequestDTO) {
         Long memberId = Long.parseLong(principal.getName());
         DecorateTextResponseDTO res = decorateService.putText(memberId,textRequestDTO);
-        messagingTemplate.convertAndSend("/app/" + textRequestDTO.roomId(),WsResponse.Success("DECOR_TEXT", res));
+        messagingTemplate.convertAndSend("/topic/room/" + textRequestDTO.roomId(),WsResponse.Success("DECOR_TEXT", res));
     }
 
     @MessageMapping("/decor/text/update")
     public void updateText(Principal principal, DecorateTextUpdateRequestDTO request) {
         Long memberId = Long.parseLong(principal.getName());
         DecorateTextResponseDTO res = decorateService.updateText(memberId, request);
-        messagingTemplate.convertAndSend("/app/" + request.roomId(), WsResponse.Success("DECOR_TEXT_UPDATE", res));
+        messagingTemplate.convertAndSend("/topic/room/" + request.roomId(), WsResponse.Success("DECOR_TEXT_UPDATE", res));
     }
 
     @MessageMapping("/decor/text/move")
     public void moveText(Principal principal, DecorateTextMoveRequestDTO request) {
         Long memberId = Long.parseLong(principal.getName());
         DecorateTextResponseDTO res = decorateService.moveText(memberId, request);
-        messagingTemplate.convertAndSend("/app/" + request.roomId(), WsResponse.Success("DECOR_TEXT_MOVE", res));
+        messagingTemplate.convertAndSend("/topic/room/" + request.roomId(), WsResponse.Success("DECOR_TEXT_MOVE", res));
     }
 
     @MessageMapping("/decor/text/remove")
     public void removeText(Principal principal, DecorateTextDeleteRequestDTO request) {
         Long memberId = Long.parseLong(principal.getName());
         DeletedTextResponseDTO res = decorateService.removeText(memberId, request);
-        messagingTemplate.convertAndSend("/app/" + request.roomId(), WsResponse.Success("DECOR_TEXT_REMOVE", res));
+        messagingTemplate.convertAndSend("/topic/room/" + request.roomId(), WsResponse.Success("DECOR_TEXT_REMOVE", res));
     }
 
     @MessageMapping("/decor/sticker/transform")
     public void removeText(Principal principal, DecorateStickerTransformRequestDTO request) {
         Long memberId = Long.parseLong(principal.getName());
         DecorateStickerResponseDTO res = decorateService.transformSticker(memberId, request);
-        messagingTemplate.convertAndSend("/app/" + request.roomId(), WsResponse.Success("DECOR_STICKER_TRANSFORM", res));
+        messagingTemplate.convertAndSend("/topic/room/" + request.roomId(), WsResponse.Success("DECOR_STICKER_TRANSFORM", res));
     }
 
     @MessageMapping("/decor/text/transform")

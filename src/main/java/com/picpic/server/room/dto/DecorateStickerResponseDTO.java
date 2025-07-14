@@ -9,7 +9,7 @@ public record DecorateStickerResponseDTO(
         Integer y,
         Integer width,
         Integer height,
-        Integer scale,
+        Double scale,
         Integer rotate
 
 ) {

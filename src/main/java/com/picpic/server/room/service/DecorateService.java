@@ -56,19 +56,19 @@ public class DecorateService {
                 req.x(),
                 req.y(),
                 req.width(),
-                req.height(),
-                req.scale()
+                req.height()
         );
 
         return new DecorateStickerResponseDTO(
-                "DECOR_STICKER",
                 stickerInstanceId,
                 req.stickerId(),
                 req.x(),
                 req.y(),
                 req.width(),
                 req.height(),
-                req.scale()
+                1.0,
+                0
+
         );
     }
 
@@ -141,7 +141,6 @@ public class DecorateService {
         penRedisRepository.saveStroke(req.roomId(), memberId, dto);
 
         DecoratePenResponseDTO res = new DecoratePenResponseDTO(
-                "DECOR_PEN",
                 req.tool() ,
                 req.color(),
                 req.strokeWidth(),
@@ -173,14 +172,14 @@ public class DecorateService {
         );
 
         return new DecorateStickerResponseDTO(
-                "DECOR_STICKER_UPDATE",
                 updatedSticker.stickerInstanceId(),
                 updatedSticker.stickerId(),
                 updatedSticker.x(),
                 updatedSticker.y(),
                 updatedSticker.width(),
                 updatedSticker.height(),
-                updatedSticker.scale()
+                updatedSticker.scale(),
+                updatedSticker.rotate()
         );
     }
 
@@ -200,7 +199,6 @@ public class DecorateService {
         stickerRedisRepository.deleteSticker(req.roomId(), req.stickerInstanceId());
 
         return new DeletedStickerResponseDTO(
-                "DECOR_STICKER_REMOVE",
                 req.stickerInstanceId());
     }
 
