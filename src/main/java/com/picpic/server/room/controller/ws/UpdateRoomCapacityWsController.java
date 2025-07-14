@@ -6,7 +6,7 @@ import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 
-import com.picpic.server.common.auth.MemberPrincipalDetail;
+import com.picpic.server.common.response.WsResponse;
 import com.picpic.server.room.dto.ws.RoomCapacityRequestDto;
 import com.picpic.server.room.dto.ws.RoomCapacityResponseDto;
 import com.picpic.server.room.service.usecase.UpdateRoomCapacityUseCase;
@@ -14,20 +14,28 @@ import com.picpic.server.room.service.usecase.UpdateRoomCapacityUseCase;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import com.picpic.server.common.auth.MemberPrincipalDetail;
+
 @Slf4j
 @Controller
 @RequiredArgsConstructor
 public class UpdateRoomCapacityWsController {
 
-	private final UpdateRoomCapacityUseCase updateRoomCapacityUseCase;
+    private final UpdateRoomCapacityUseCase updateRoomCapacityUseCase;
 
-	@MessageMapping("/room/{roomId}/capacity")
-	@SendTo("/topic/room/{roomId}/capacity")
-	public RoomCapacityResponseDto updateRoomCapacity(
-		@AuthenticationPrincipal MemberPrincipalDetail memberDetail,
-		@DestinationVariable String roomId,
-		RoomCapacityRequestDto request
-	) {
-		return updateRoomCapacityUseCase.update(memberDetail.memberId(), roomId, request.roomCapacity());
-	}
+    @MessageMapping("/room/{roomId}/capacity")
+    @SendTo("/topic/room/{roomId}")
+    public WsResponse<RoomCapacityResponseDto> updateRoomCapacity(
+            @AuthenticationPrincipal MemberPrincipalDetail memberDetail,
+            @DestinationVariable String roomId,
+            RoomCapacityRequestDto request
+    ) {
+        RoomCapacityResponseDto response = updateRoomCapacityUseCase.update(
+            memberDetail.memberId(),
+            roomId,
+            request.roomCapacity()
+        );
+
+        return WsResponse.success("ROOM_CAPACITY", response);
+    }
 }
