@@ -7,11 +7,11 @@ import java.util.List;
 
 @Builder
 public record GetRoomMemberResponseDto(
-        List<RoomMemberDto> members
+        List<RoomMemberResponseDto> members
 ) {
     public static GetRoomMemberResponseDto from(List<RoomMember> roomMembers) {
 
-        List<RoomMemberDto> members = roomMembers.stream().map(RoomMemberDto::from).toList();
+        List<RoomMemberResponseDto> members = roomMembers.stream().map(RoomMemberResponseDto::from).toList();
 
         return GetRoomMemberResponseDto.builder()
                 .members(members)
