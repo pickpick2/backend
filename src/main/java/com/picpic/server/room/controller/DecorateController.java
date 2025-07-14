@@ -93,6 +93,14 @@ public class DecorateController {
         messagingTemplate.convertAndSend("/app/" + request.roomId(), WsResponse.Success("DECOR_STICKER_TRANSFORM", res));
     }
 
+    @MessageMapping("/decor/text/transform")
+    public void removeText(Principal principal, DecorateTextTransformRequestDTO request) {
+        Long memberId = Long.parseLong(principal.getName());
+        DecorateTextResponseDTO res = decorateService.transformText(memberId, request);
+        messagingTemplate.convertAndSend("/topic/room/" + request.roomId(), WsResponse.Success("DECOR_TEXT_TRANSFORM", res));
+    }
+
+
 
 
 

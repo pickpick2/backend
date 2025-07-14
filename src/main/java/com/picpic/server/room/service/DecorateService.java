@@ -107,7 +107,9 @@ public class DecorateService {
                 req.color(),
                 req.x(),
                 req.y(),
-                req.fontSize()
+                req.fontSize(),
+                0,
+                1.0
 
         );
 
@@ -227,7 +229,9 @@ public class DecorateService {
                 req.newFontSize(),
                 req.newColor(),
                 existing.x(),
-                existing.y()
+                existing.y(),
+                existing.rotate(),
+                existing.scale()
 
         );
 
@@ -241,7 +245,9 @@ public class DecorateService {
                 updated.color(),
                 updated.x(),
                 updated.y(),
-                updated.fontSize()
+                updated.fontSize(),
+                updated.rotate(),
+                updated.scale()
         );
     }
 
@@ -273,7 +279,9 @@ public class DecorateService {
                 existing.color(),
                 req.x(),
                 req.y(),
-                existing.fontSize()
+                existing.fontSize(),
+                existing.rotate(),
+                existing.scale()
 
         );
     }
@@ -324,6 +332,33 @@ public class DecorateService {
                 transformSticker.rotate()
         );
     }
+
+    public DecorateTextResponseDTO transformText(Long memberId, DecorateTextTransformRequestDTO req) {
+        Member member = memberRepository.findById(memberId).orElseThrow(
+                () -> new ApiException(ErrorCode.NOT_FOUND_MEMBER)
+        );
+
+        TextRedisDTO existing = textRedisRepository.findText(req.roomId(), req.textBoxId())
+                .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND_TEXT));
+
+        textRedisRepository.updateTextTransform(req.roomId(), req.textBoxId(), req.scale(), req.rotate());
+
+        return new DecorateTextResponseDTO(
+                existing.textBoxId(),
+                existing.text(),
+                existing.font(),
+                existing.color(),
+                existing.x(),
+                existing.y(),
+                existing.fontSize(),
+                req.rotate(),
+                req.scale()
+
+        );
     }
+
+
 }
+
+
 
