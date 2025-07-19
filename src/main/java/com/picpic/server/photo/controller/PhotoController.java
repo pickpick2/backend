@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.picpic.server.common.security.MemberPrincipalDetail;
+import com.picpic.server.common.auth.MemberPrincipalDetail;
 import com.picpic.server.photo.dto.PhotoDetailResponse;
 import com.picpic.server.photo.dto.PhotoListResponse;
 import com.picpic.server.photo.service.usecase.PhotoUseCase;
