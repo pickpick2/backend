@@ -368,7 +368,7 @@ public class DecorateService {
                 () -> new ApiException(ErrorCode.NOT_FOUND_MEMBER)
         );
 
-//		session.draw();
+//		session.decoration();
 
         DecoreStartResponseDTO res = new DecoreStartResponseDTO(Instant.now(), 300);
         log.info("꾸미기모드 시작");
