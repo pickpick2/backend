@@ -13,11 +13,16 @@ import com.picpic.server.room.entity.Sticker;
 import com.picpic.server.room.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -32,10 +37,13 @@ public class DecorateService {
     private final TextRedisRepository textRedisRepository;
     private final PenRedisRepository penRedisRepository;
 
-	public DecorateStickerResponseDTO sticker(Long memberId, DecorateStickerRequestDTO req) {
-		Member member = memberRepository.findById(memberId).orElseThrow(
-			() -> new ApiException(ErrorCode.NOT_FOUND_MEMBER)
-		);
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+    private final SimpMessagingTemplate messagingTemplate;
+
+    public DecorateStickerResponseDTO sticker(Long memberId, DecorateStickerRequestDTO req) {
+        Member member = memberRepository.findById(memberId).orElseThrow(
+                () -> new ApiException(ErrorCode.NOT_FOUND_MEMBER)
+        );
 
 //		Session session = sessionRepository.findById(req.sessionId()).orElseThrow(
 //			() -> new ApiException(ErrorCode.NOT_FOUND_SESSION)
@@ -45,11 +53,11 @@ public class DecorateService {
 //			() -> new ApiException(ErrorCode.NOT_PARTICIPANT)
 //		);
 
-		Sticker sticker = stickerRepository.findById(req.stickerId()).orElseThrow(
-			() -> new ApiException(ErrorCode.NO_STICKER)
-		);
+        Sticker sticker = stickerRepository.findById(req.stickerId()).orElseThrow(
+                () -> new ApiException(ErrorCode.NO_STICKER)
+        );
 
-		Long stickerInstanceId = stickerRedisRepository.saveSticker(
+        Long stickerInstanceId = stickerRedisRepository.saveSticker(
                 req.roomId(),
                 req.stickerId(),
                 memberId,
@@ -72,10 +80,10 @@ public class DecorateService {
         );
     }
 
-	public DecorateTextResponseDTO putText(Long memberId, DecorateTextRequestDTO req) {
-		Member member = memberRepository.findById(memberId).orElseThrow(
-			() -> new ApiException(ErrorCode.NOT_FOUND_MEMBER)
-		);
+    public DecorateTextResponseDTO putText(Long memberId, DecorateTextRequestDTO req) {
+        Member member = memberRepository.findById(memberId).orElseThrow(
+                () -> new ApiException(ErrorCode.NOT_FOUND_MEMBER)
+        );
 
 //		Session session = sessionRepository.findById(req.sessionId()).orElseThrow(
 //			() -> new ApiException(ErrorCode.NOT_FOUND_SESSION)
@@ -116,7 +124,7 @@ public class DecorateService {
         return res;
     }
 
-//    draw
+    //    draw
     public DecoratePenResponseDTO draw(Long memberId, DecoratePenRequestDTO req) {
         Member member = memberRepository.findById(memberId).orElseThrow(
                 () -> new ApiException(ErrorCode.NOT_FOUND_MEMBER)
@@ -141,7 +149,7 @@ public class DecorateService {
         penRedisRepository.saveStroke(req.roomId(), memberId, dto);
 
         DecoratePenResponseDTO res = new DecoratePenResponseDTO(
-                req.tool() ,
+                req.tool(),
                 req.color(),
                 req.strokeWidth(),
                 req.x(),
@@ -301,7 +309,7 @@ public class DecorateService {
         TextRedisDTO existing = textRedisRepository.findText(req.roomId(), req.textBoxId())
                 .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND_TEXT));
 
-            textRedisRepository.deleteText(req.roomId(), req.textBoxId());
+        textRedisRepository.deleteText(req.roomId(), req.textBoxId());
 
         // 4. 응답용 객체 반환 (삭제됐지만 어떤 게 삭제됐는지 알려줌)
         return new DeletedTextResponseDTO(req.textBoxId());
@@ -355,8 +363,23 @@ public class DecorateService {
         );
     }
 
+    public DecoreStartResponseDTO startDeocorate(Long memberId, Long roomId) {
+        Member member = memberRepository.findById(memberId).orElseThrow(
+                () -> new ApiException(ErrorCode.NOT_FOUND_MEMBER)
+        );
 
+//		session.draw();
+
+        DecoreStartResponseDTO res = new DecoreStartResponseDTO(Instant.now(), 300);
+        log.info("꾸미기모드 시작");
+
+        return res;
+
+
+    }
 }
+
+
 
 
 
