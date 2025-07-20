@@ -2,18 +2,29 @@ package com.picpic.server.room.controller;
 
 import java.security.Principal;
 
-import com.picpic.server.room.dto.*;
-import com.picpic.server.room.dto.DecorateStickerRequestDTO;
-import com.picpic.server.room.dto.DecorateStickerResponseDTO;
-import com.picpic.server.room.dto.DecorateTextRequestDTO;
-import com.picpic.server.room.dto.DecorateTextResponseDTO;
-import com.picpic.server.room.dto.ws.DecorateStickerTransformRequestDTO;
-import com.picpic.server.room.service.DecorateService;
-import org.apache.tomcat.websocket.WsHandshakeResponse;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
+
+import com.picpic.server.common.response.WsResponse;
+import com.picpic.server.room.dto.DecoratePenRequestDTO;
+import com.picpic.server.room.dto.DecoratePenResponseDTO;
+import com.picpic.server.room.dto.DecorateStickerRequestDTO;
+import com.picpic.server.room.dto.DecorateStickerResponseDTO;
+import com.picpic.server.room.dto.DecorateTextDeleteRequestDTO;
+import com.picpic.server.room.dto.DecorateTextMoveRequestDTO;
+import com.picpic.server.room.dto.DecorateTextRequestDTO;
+import com.picpic.server.room.dto.DecorateTextResponseDTO;
+
+import com.picpic.server.room.dto.ws.DecorateStickerTransformRequestDTO;
+import com.picpic.server.room.dto.DecorateTextUpdateRequestDTO;
+import com.picpic.server.room.dto.DeleteStickerRequestDTO;
+import com.picpic.server.room.dto.DeletedStickerResponseDTO;
+import com.picpic.server.room.dto.DeletedTextResponseDTO;
+import com.picpic.server.room.dto.UpdateStickerPositionRequestDTO;
+import com.picpic.server.room.service.DecorateService;
+
+import lombok.RequiredArgsConstructor;
 
 @Controller
 @RequiredArgsConstructor
@@ -99,10 +110,5 @@ public class DecorateController {
         DecorateTextResponseDTO res = decorateService.transformText(memberId, request);
         messagingTemplate.convertAndSend("/topic/room/" + request.roomId(), WsResponse.Success("DECOR_TEXT_TRANSFORM", res));
     }
-
-
-
-
-
 
 }
