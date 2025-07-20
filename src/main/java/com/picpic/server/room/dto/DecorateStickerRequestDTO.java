@@ -9,8 +9,7 @@ public record DecorateStickerRequestDTO(
         Integer x,
         Integer y,
         Integer width,
-        Integer height,
-        Integer scale
+        Integer height
 
 ) {
 

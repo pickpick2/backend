@@ -18,7 +18,7 @@ public class StickerRedisRepository {
 
     // 스티커 저장 (고유 stickerInstanceId 생성)
     public Long saveSticker(Long roomId, Long stickerId, Long memberId,
-                            Integer x, Integer y, Integer width, Integer height, Integer scale) {
+                            Integer x, Integer y, Integer width, Integer height) {
         String key = generateKey(roomId);
         Long stickerInstanceId = redisTemplate.opsForValue().increment("sticker:instance:id");
 
@@ -27,7 +27,7 @@ public class StickerRedisRepository {
                 stickerInstanceId,
                 stickerId,
                 memberId,
-                x, y, width, height, scale,0
+                x, y, width, height, 1.0,0
         );
 
         redisTemplate.opsForList().rightPush(key, dto);
@@ -76,7 +76,8 @@ public class StickerRedisRepository {
         }
     }
 
-    public StickerRedisDTO transformSticker(Long roomId, Long stickerInstanceId, Integer scale, Integer rotate) {
+
+    public StickerRedisDTO transformSticker(Long roomId, Long stickerInstanceId, Double scale, Integer rotate) {
         String key = generateKey(roomId);
         List<Object> stickers = redisTemplate.opsForList().range(key, 0, -1);
 

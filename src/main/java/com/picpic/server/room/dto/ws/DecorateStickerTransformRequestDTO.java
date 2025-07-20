@@ -4,7 +4,7 @@ public record DecorateStickerTransformRequestDTO(
         Long roomId,
         Long stickerInstanceId,
         Long stickerId,
-        Integer scale,
+        Double scale,
         Integer rotate
 ) {
 }
