@@ -27,7 +27,7 @@ public class StickerRedisRepository {
                 stickerInstanceId,
                 stickerId,
                 memberId,
-                x, y, width, height, scale
+                x, y, width, height, scale,0
         );
 
         redisTemplate.opsForList().rightPush(key, dto);
@@ -50,7 +50,8 @@ public class StickerRedisRepository {
                         y,
                         dto.width(),
                         dto.height(),
-                        dto.scale()
+                        dto.scale(),
+                        dto.rotate()
                 );
 
                 redisTemplate.opsForList().set(key, i, updated);
@@ -73,6 +74,32 @@ public class StickerRedisRepository {
                 break;
             }
         }
+    }
+
+    public StickerRedisDTO transformSticker(Long roomId, Long stickerInstanceId, Integer scale, Integer rotate) {
+        String key = generateKey(roomId);
+        List<Object> stickers = redisTemplate.opsForList().range(key, 0, -1);
+
+        for (int i = 0; i < stickers.size(); i++) {
+            StickerRedisDTO dto = (StickerRedisDTO) stickers.get(i);
+            if (dto.stickerInstanceId().equals(stickerInstanceId)) {
+                StickerRedisDTO transformed = new StickerRedisDTO(
+                        dto.stickerInstanceId(),
+                        dto.stickerId(),
+                        dto.memberId(),
+                        dto.x(), dto.y(),
+                        dto.width(),
+                        dto.height(),
+                        scale,
+                        rotate
+                );
+
+                redisTemplate.opsForList().set(key, i, transformed);
+                return transformed;
+            }
+        }
+
+        throw new ApiException(ErrorCode.NO_STICKER); // 못 찾은 경우
     }
 
     // Redis 키 생성

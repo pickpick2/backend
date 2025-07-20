@@ -15,6 +15,8 @@ import com.picpic.server.room.dto.DecorateTextDeleteRequestDTO;
 import com.picpic.server.room.dto.DecorateTextMoveRequestDTO;
 import com.picpic.server.room.dto.DecorateTextRequestDTO;
 import com.picpic.server.room.dto.DecorateTextResponseDTO;
+
+import com.picpic.server.room.dto.ws.DecorateStickerTransformRequestDTO;
 import com.picpic.server.room.dto.DecorateTextUpdateRequestDTO;
 import com.picpic.server.room.dto.DeleteStickerRequestDTO;
 import com.picpic.server.room.dto.DeletedStickerResponseDTO;
@@ -28,69 +30,85 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class DecorateController {
 
-	private final DecorateService decorateService;
-	private final SimpMessagingTemplate messagingTemplate;
+    private final DecorateService decorateService;
+    private final SimpMessagingTemplate messagingTemplate;
 
-	//    @MessageMapping("/decor/start")
-	//    public void decorateStart(Principal principal, DecorateStartRequestDTO decorateStartRequestDTO) {
-	//        Long memberId = Long.parseLong(principal.getName());
-	//        DecorateStartResponseDTO res ;
-	//    }
+//    @MessageMapping("/decor/start")
+//    public void decorateStart(Principal principal, DecorateStartRequestDTO decorateStartRequestDTO) {
+//        Long memberId = Long.parseLong(principal.getName());
+//        DecorateStartResponseDTO res ;
+//    }
 
-	@MessageMapping("/decor/pen")
-	public void stroke(Principal principal, DecoratePenRequestDTO penRequestDTO) {
-		Long memberId = Long.parseLong(principal.getName());
-		DecoratePenResponseDTO res = decorateService.draw(memberId, penRequestDTO);
-		messagingTemplate.convertAndSend("/app/" + penRequestDTO.roomId(), res);
-	}
+    @MessageMapping("/decor/pen")
+    public void stroke(Principal principal, DecoratePenRequestDTO penRequestDTO) {
+        Long memberId = Long.parseLong(principal.getName());
+        DecoratePenResponseDTO res = decorateService.draw(memberId,penRequestDTO);
+        messagingTemplate.convertAndSend("/app/" + penRequestDTO.roomId(), res);
+    }
 
-	@MessageMapping("/decor/sticker")
-	public void sticker(Principal principal, DecorateStickerRequestDTO stickerRequestDTO) {
-		Long memberId = Long.parseLong(principal.getName());
-		DecorateStickerResponseDTO res = decorateService.sticker(memberId, stickerRequestDTO);
-		messagingTemplate.convertAndSend("/app/" + stickerRequestDTO.roomId(), res);
-	}
+    @MessageMapping("/decor/sticker")
+    public void sticker(Principal principal, DecorateStickerRequestDTO stickerRequestDTO) {
+        Long memberId = Long.parseLong(principal.getName());
+        DecorateStickerResponseDTO res = decorateService.sticker(memberId,stickerRequestDTO);
+        messagingTemplate.convertAndSend("/app/" + stickerRequestDTO.roomId(), res);
+    }
 
-	@MessageMapping("/decor/sticker/update")
-	public void updateStickerPosition(Principal principal, UpdateStickerPositionRequestDTO dto) {
-		Long memberId = Long.parseLong(principal.getName());
-		DecorateStickerResponseDTO res = decorateService.updateStickerPosition(memberId, dto);
-		messagingTemplate.convertAndSend("/app/" + dto.roomId(), res);
-	}
+    @MessageMapping("/decor/sticker/update")
+    public void updateStickerPosition(Principal principal, UpdateStickerPositionRequestDTO dto) {
+        Long memberId = Long.parseLong(principal.getName());
+        DecorateStickerResponseDTO res = decorateService.updateStickerPosition(memberId, dto);
+        messagingTemplate.convertAndSend("/app/" + dto.roomId(), res);
+    }
 
-	@MessageMapping("/decor/sticker/remove")
-	public void removeSticker(Principal principal, DeleteStickerRequestDTO reqDto) {
-		Long memberId = Long.parseLong(principal.getName());
-		DeletedStickerResponseDTO res = decorateService.deleteSticker(memberId, reqDto);
-		messagingTemplate.convertAndSend("/app/" + reqDto.roomId(), res);
-	}
+    @MessageMapping("/decor/sticker/remove")
+    public void removeSticker(Principal principal, DeleteStickerRequestDTO reqDto) {
+        Long memberId = Long.parseLong(principal.getName());
+        DeletedStickerResponseDTO res = decorateService.deleteSticker(memberId, reqDto);
+        messagingTemplate.convertAndSend("/app/" + reqDto.roomId(), res);
+    }
 
-	@MessageMapping("/decor/text")
-	public void text(Principal principal, DecorateTextRequestDTO textRequestDTO) {
-		Long memberId = Long.parseLong(principal.getName());
-		DecorateTextResponseDTO res = decorateService.putText(memberId, textRequestDTO);
-		messagingTemplate.convertAndSend("/app/" + textRequestDTO.roomId(), WsResponse.success("DECOR_TEXT", res));
-	}
 
-	@MessageMapping("/decor/text/update")
-	public void updateText(Principal principal, DecorateTextUpdateRequestDTO request) {
-		Long memberId = Long.parseLong(principal.getName());
-		DecorateTextResponseDTO res = decorateService.updateText(memberId, request);
-		messagingTemplate.convertAndSend("/app/" + request.roomId(), WsResponse.success("DECOR_TEXT_UPDATE", res));
-	}
 
-	@MessageMapping("/decor/text/move")
-	public void moveText(Principal principal, DecorateTextMoveRequestDTO request) {
-		Long memberId = Long.parseLong(principal.getName());
-		DecorateTextResponseDTO res = decorateService.moveText(memberId, request);
-		messagingTemplate.convertAndSend("/app/" + request.roomId(), WsResponse.success("DECOR_TEXT_MOVE", res));
-	}
+    @MessageMapping("/decor/text")
+    public void text(Principal principal, DecorateTextRequestDTO textRequestDTO) {
+        Long memberId = Long.parseLong(principal.getName());
+        DecorateTextResponseDTO res = decorateService.putText(memberId,textRequestDTO);
+        messagingTemplate.convertAndSend("/app/" + textRequestDTO.roomId(),WsResponse.Success("DECOR_TEXT", res));
+    }
 
-	@MessageMapping("/decor/text/remove")
-	public void removeText(Principal principal, DecorateTextDeleteRequestDTO request) {
-		Long memberId = Long.parseLong(principal.getName());
-		DeletedTextResponseDTO res = decorateService.removeText(memberId, request);
-		messagingTemplate.convertAndSend("/app/" + request.roomId(), WsResponse.success("DECOR_TEXT_REMOVE", res));
-	}
+    @MessageMapping("/decor/text/update")
+    public void updateText(Principal principal, DecorateTextUpdateRequestDTO request) {
+        Long memberId = Long.parseLong(principal.getName());
+        DecorateTextResponseDTO res = decorateService.updateText(memberId, request);
+        messagingTemplate.convertAndSend("/app/" + request.roomId(), WsResponse.Success("DECOR_TEXT_UPDATE", res));
+    }
+
+    @MessageMapping("/decor/text/move")
+    public void moveText(Principal principal, DecorateTextMoveRequestDTO request) {
+        Long memberId = Long.parseLong(principal.getName());
+        DecorateTextResponseDTO res = decorateService.moveText(memberId, request);
+        messagingTemplate.convertAndSend("/app/" + request.roomId(), WsResponse.Success("DECOR_TEXT_MOVE", res));
+    }
+
+    @MessageMapping("/decor/text/remove")
+    public void removeText(Principal principal, DecorateTextDeleteRequestDTO request) {
+        Long memberId = Long.parseLong(principal.getName());
+        DeletedTextResponseDTO res = decorateService.removeText(memberId, request);
+        messagingTemplate.convertAndSend("/app/" + request.roomId(), WsResponse.Success("DECOR_TEXT_REMOVE", res));
+    }
+
+    @MessageMapping("/decor/sticker/transform")
+    public void removeText(Principal principal, DecorateStickerTransformRequestDTO request) {
+        Long memberId = Long.parseLong(principal.getName());
+        DecorateStickerResponseDTO res = decorateService.transformSticker(memberId, request);
+        messagingTemplate.convertAndSend("/app/" + request.roomId(), WsResponse.Success("DECOR_STICKER_TRANSFORM", res));
+    }
+
+    @MessageMapping("/decor/text/transform")
+    public void removeText(Principal principal, DecorateTextTransformRequestDTO request) {
+        Long memberId = Long.parseLong(principal.getName());
+        DecorateTextResponseDTO res = decorateService.transformText(memberId, request);
+        messagingTemplate.convertAndSend("/topic/room/" + request.roomId(), WsResponse.Success("DECOR_TEXT_TRANSFORM", res));
+    }
 
 }

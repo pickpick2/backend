@@ -9,7 +9,9 @@ public record DecorateTextResponseDTO(
         String color,
         Integer x,
         Integer y,
-        Integer fontSize
+        Integer fontSize,
+        Integer rotate,
+        Double scale
 
 ) {
 

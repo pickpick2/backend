@@ -9,6 +9,8 @@ public record TextRedisDTO(
         Integer fontSize,
         String color,
         Integer x,
-        Integer y
+        Integer y,
+        Integer rotate,
+        Double scale
 ) implements Serializable {
 }

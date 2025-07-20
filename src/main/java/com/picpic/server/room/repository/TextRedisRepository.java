@@ -20,7 +20,7 @@ public class TextRedisRepository {
         String key = generateKey(roomId, textBoxId);
 
         TextRedisDTO value = new TextRedisDTO(
-                textBoxId, text, font, fontSize, color, x, y
+                textBoxId, text, font, fontSize, color, x, y,0,1.0
         );
 
         redisTemplate.opsForValue().set(key, value);
@@ -60,7 +60,30 @@ public class TextRedisRepository {
                     oldDto.fontSize(),
                     oldDto.color(),
                     newX,
-                    newY
+                    newY,
+                    oldDto.rotate(),
+                    oldDto.scale()
+            );
+            redisTemplate.opsForValue().set(key, updated);
+        }
+    }
+
+// 텍스트 사이즈, 각도 수정
+    public void updateTextTransform(Long roomId, String textBoxId, Double scale, Integer rotate) {
+        String key = generateKey(roomId, textBoxId);
+        Object value = redisTemplate.opsForValue().get(key);
+
+        if (value instanceof TextRedisDTO oldDto) {
+            TextRedisDTO updated = new TextRedisDTO(
+                    oldDto.textBoxId(),
+                    oldDto.text(),
+                    oldDto.font(),
+                    oldDto.fontSize(),
+                    oldDto.color(),
+                    oldDto.x(),
+                    oldDto.y(),
+                    rotate,
+                    scale
             );
             redisTemplate.opsForValue().set(key, updated);
         }

@@ -6,6 +6,7 @@ import com.picpic.server.common.exception.ErrorCode;
 import com.picpic.server.member.repository.MemberRepository;
 import com.picpic.server.room.dto.*;
 import com.picpic.server.member.entity.Member;
+import com.picpic.server.room.dto.ws.DecorateStickerTransformRequestDTO;
 import com.picpic.server.room.entity.Participant;
 import com.picpic.server.room.entity.Session;
 import com.picpic.server.room.entity.Sticker;
@@ -106,7 +107,9 @@ public class DecorateService {
                 req.color(),
                 req.x(),
                 req.y(),
-                req.fontSize()
+                req.fontSize(),
+                0,
+                1.0
 
         );
 
@@ -226,7 +229,9 @@ public class DecorateService {
                 req.newFontSize(),
                 req.newColor(),
                 existing.x(),
-                existing.y()
+                existing.y(),
+                existing.rotate(),
+                existing.scale()
 
         );
 
@@ -240,7 +245,9 @@ public class DecorateService {
                 updated.color(),
                 updated.x(),
                 updated.y(),
-                updated.fontSize()
+                updated.fontSize(),
+                updated.rotate(),
+                updated.scale()
         );
     }
 
@@ -272,7 +279,9 @@ public class DecorateService {
                 existing.color(),
                 req.x(),
                 req.y(),
-                existing.fontSize()
+                existing.fontSize(),
+                existing.rotate(),
+                existing.scale()
 
         );
     }
@@ -300,5 +309,56 @@ public class DecorateService {
         return new DeletedTextResponseDTO(req.textBoxId());
     }
 
+    public DecorateStickerResponseDTO transformSticker(Long memberId, DecorateStickerTransformRequestDTO req) {
+        Member member = memberRepository.findById(memberId).orElseThrow(
+                () -> new ApiException(ErrorCode.NOT_FOUND_MEMBER)
+        );
+
+        StickerRedisDTO transformSticker = stickerRedisRepository.transformSticker(
+                req.roomId(),
+                req.stickerInstanceId(),
+                req.scale(),
+                req.rotate()
+        );
+
+        return new DecorateStickerResponseDTO(
+                transformSticker.stickerInstanceId(),
+                transformSticker.stickerId(),
+                transformSticker.x(),
+                transformSticker.y(),
+                transformSticker.width(),
+                transformSticker.height(),
+                transformSticker.scale(),
+                transformSticker.rotate()
+        );
+    }
+
+    public DecorateTextResponseDTO transformText(Long memberId, DecorateTextTransformRequestDTO req) {
+        Member member = memberRepository.findById(memberId).orElseThrow(
+                () -> new ApiException(ErrorCode.NOT_FOUND_MEMBER)
+        );
+
+        TextRedisDTO existing = textRedisRepository.findText(req.roomId(), req.textBoxId())
+                .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND_TEXT));
+
+        textRedisRepository.updateTextTransform(req.roomId(), req.textBoxId(), req.scale(), req.rotate());
+
+        return new DecorateTextResponseDTO(
+                existing.textBoxId(),
+                existing.text(),
+                existing.font(),
+                existing.color(),
+                existing.x(),
+                existing.y(),
+                existing.fontSize(),
+                req.rotate(),
+                req.scale()
+
+        );
+    }
+
+
 }
+
+
 
