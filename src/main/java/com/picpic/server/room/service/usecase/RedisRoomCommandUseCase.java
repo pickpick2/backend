@@ -16,4 +16,6 @@ public interface RedisRoomCommandUseCase {
 	void updateRoomCapacity(String roomId, Integer roomCapacity);
 
 	RoomMember updateReadyState(String roomId, Long memberId, RoomMemberStatus roomMemberStatus);
+
+	int updateBackground(String roomId, Integer backgroundId);
 }

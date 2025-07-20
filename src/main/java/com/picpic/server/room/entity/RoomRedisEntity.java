@@ -33,6 +33,8 @@ public class RoomRedisEntity {
     @Builder.Default
     private int roomCapacity = 6;
 
+    private int backgroundId;
+
     public RoomRedisEntity addMember(RoomMember newMember) {
 
         List<RoomMember> updatedMembers = new ArrayList<>();

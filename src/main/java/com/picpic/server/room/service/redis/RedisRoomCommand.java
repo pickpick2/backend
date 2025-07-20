@@ -98,4 +98,19 @@ public class RedisRoomCommand implements RedisRoomCommandUseCase {
 
 		return roomMember;
 	}
+
+	@Override
+	public int updateBackground(String roomId, Integer backgroundId) {
+
+		RoomRedisEntity roomEntity = roomRedisRepository.findById(roomId)
+			.orElseThrow(() -> new WsException(WsErrorCode.NOT_FOUND_ROOM));
+
+		RoomRedisEntity updated = roomEntity.toBuilder()
+			.backgroundId(backgroundId)
+			.build();
+
+		RoomRedisEntity save = roomRedisRepository.save(updated);
+
+		return save.getBackgroundId();
+	}
 }

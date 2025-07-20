@@ -25,7 +25,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
 		FilterChain filterChain) throws ServletException, IOException {
 
-		String token = jwtTokenProvider.resolveToken(request);
+		String token = jwtTokenProvider.resolveToken(request.getHeader("Authorization"));
 
 		if (token == null) {
 			throw new ApiException(ErrorCode.UNAUTHORIZED);
@@ -59,7 +59,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 			path.startsWith("/h2") ||
 				path.startsWith("/api/v1/sign-in") ||
 				path.startsWith("/api/v1/sign-up") ||
-				path.startsWith("/api/v1/guest");
+				path.startsWith("/api/v1/guest") ||
+				path.startsWith("/wss");
 	}
 
 }

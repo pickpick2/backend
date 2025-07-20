@@ -76,6 +76,7 @@ public class StickerRedisRepository {
         }
     }
 
+
     public StickerRedisDTO transformSticker(Long roomId, Long stickerInstanceId, Double scale, Integer rotate) {
         String key = generateKey(roomId);
         List<Object> stickers = redisTemplate.opsForList().range(key, 0, -1);
