@@ -12,6 +12,9 @@ import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.stereotype.Component;
 
+import com.picpic.server.common.auth.JwtTokenProvider;
+import com.picpic.server.common.exception.ApiException;
+import com.picpic.server.common.exception.ErrorCode;
 import com.picpic.server.common.exception.WsException;
 import com.picpic.server.member.entity.Member;
 import com.picpic.server.room.service.usecase.RedisRoomQueryUseCase;
@@ -28,6 +31,7 @@ public class RoomValidationInterceptor implements ChannelInterceptor {
 
 	private final RedisRoomQueryUseCase redisRoomQueryUseCase;
 	private final RedisTemplate<String, Object> redisTemplate;
+	private final JwtTokenProvider jwtTokenProvider;
 
 	@Override
 	public Message<?> preSend(Message<?> message, MessageChannel channel) {
@@ -35,32 +39,39 @@ public class RoomValidationInterceptor implements ChannelInterceptor {
 		StompCommand command = accessor.getCommand();
 
         if (StompCommand.CONNECT.equals(command)) {
-            // TODO: Jwt 유틸 개발 이후, 이 부분에 토큰 안에 담긴 내용으로 principal 생성해야함
-//            String token = accessor.getFirstNativeHeader("Authorization");
-            String token = accessor.getFirstNativeHeader("X-Test-Member-Id");
+           	String token = accessor.getFirstNativeHeader("Authorization");
             String roomId = accessor.getFirstNativeHeader("roomId");
+
+			token = jwtTokenProvider.resolveToken(token);
 
 			if (token == null || roomId == null) {
 				log.warn("[STOMP] CONNECT rejected - Missing token or roomId");
 				return null;
 			}
 
-            try {
-                validateAlreadyEnter(token);
-                validateRoomExist(roomId);
-                validateRoomCapacity(roomId);
+			try {
+				validateToken(token);
+
+				String userId = String.valueOf(jwtTokenProvider.getMemberId(token));
+				String nickname = jwtTokenProvider.getNickname(token);
+				Member.Role role = jwtTokenProvider.getRole(token);
+
+				validateAlreadyEnter(userId);
+				validateRoomExist(roomId);
+				validateRoomCapacity(roomId);
 
 				MemberPrincipalDetail principal = new MemberPrincipalDetail(
-					Long.parseLong(token),
-					"test nickname",
-					Member.Role.GUEST
+					Long.parseLong(userId),
+					nickname,
+					role
 				);
 
                 accessor.setUser(principal);
 
-                log.info("[STOMP] CONNECT approved - userId: {}, roomId: {}", token, roomId);
-            } catch (WsException e) {
-                throw new MessagingException(e.getMessage(), e);
+                log.info("[STOMP] CONNECT approved - userId: {}, roomId: {}", userId, roomId);
+            }  catch (WsException e) {
+                log.error("[STOMP] CONNECT failed: {}", e.getMessage(), e);
+				throw new MessagingException(e.getMessage(), e);
             }
         }
 
@@ -88,4 +99,17 @@ public class RoomValidationInterceptor implements ChannelInterceptor {
             throw new WsException(EXCEED_ROOM_CAPACITY);
         }
     }
+
+	private void validateToken(String token) {
+		try {
+			jwtTokenProvider.validateToken(token);
+		} catch (ApiException e) {
+			if(e.getErrorCode() == ErrorCode.EXPIRED_TOKEN) {
+				throw new WsException(EXPIRED_TOKEN);
+			}
+			if(e.getErrorCode() == ErrorCode.UNAVAILABLE_TOKEN) {
+				throw new WsException(UNAVAILABLE_TOKEN);
+			}
+		}
+	}
 }
