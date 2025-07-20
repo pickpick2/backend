@@ -98,9 +98,7 @@ public class JwtTokenProvider {
 		return new SecretKeySpec(bytes, "HmacSHA256");
 	}
 
-	public String resolveToken(HttpServletRequest request) {
-		String authorizationHeader = request.getHeader("Authorization");
-
+	public String resolveToken(String authorizationHeader) {
 		if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
 			return null;
 		}
