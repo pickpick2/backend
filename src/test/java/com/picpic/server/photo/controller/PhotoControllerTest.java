@@ -16,7 +16,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.test.web.servlet.MockMvc;
 
-import com.picpic.server.common.security.MemberPrincipalDetail;
+import com.picpic.server.common.auth.MemberPrincipalDetail;
+import com.picpic.server.member.entity.Member;
 import com.picpic.server.photo.dto.PhotoDetailResponse;
 import com.picpic.server.photo.dto.PhotoListResponse;
 import com.picpic.server.photo.service.usecase.PhotoUseCase;
@@ -34,8 +35,12 @@ class PhotoControllerTest {
 	 * MemberPrincipalDetail 을 Authentication 토큰에 담아 주입하는 헬퍼
 	 */
 	private Authentication auth(long memberId) {
-		// record 생성자를 직접 사용합니다.
-		MemberPrincipalDetail principal = new MemberPrincipalDetail(memberId, "nick" + memberId);
+
+		MemberPrincipalDetail principal = new MemberPrincipalDetail(
+			memberId,
+			"nick" + memberId,
+			Member.Role.GUEST
+		);
 		return new UsernamePasswordAuthenticationToken(principal, null, List.of());
 	}
 
