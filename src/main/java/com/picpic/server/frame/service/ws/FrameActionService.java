@@ -36,19 +36,24 @@ public class FrameActionService {
 		} else {
 			payload = doSelect(roomId, userId, targetId);
 		}
-		
+
 		template.convertAndSend(
 			"/topic/room/" + roomId + "/frames",
 			new FrameWsMessage<>(type, requestId, payload)
 		);
 	}
 
-	private FrameActionResponse doVote(String roomId, Long userId, Long frameId) {
-		String key = "room:" + roomId + ":frame:" + frameId + ":votes";
-		redisTemplate.opsForSet().add(key, userId);
-
+	private FrameActionResponse doVote(String roomId, Long userId, Long newFrameId) {
+		Set<String> voteKeys = redisTemplate.keys("room:" + roomId + ":frame:*:votes");
+		if (voteKeys != null) {
+			for (String key : voteKeys) {
+				redisTemplate.opsForSet().remove(key, userId);
+			}
+		}
+		String newKey = "room:" + roomId + ":frame:" + newFrameId + ":votes";
+		redisTemplate.opsForSet().add(newKey, userId);
 		@SuppressWarnings("unchecked")
-		Set<Object> members = redisTemplate.opsForSet().members(key);
+		Set<Object> members = redisTemplate.opsForSet().members(newKey);
 		List<UserProfile> profiles = mapToProfiles(members);
 
 		return new FrameActionResponse(FrameMessageType.VOTE, profiles);
