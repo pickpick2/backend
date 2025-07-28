@@ -1,5 +1,6 @@
 package com.picpic.server.frame.service.ws;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -14,6 +15,7 @@ import com.picpic.server.frame.dto.ws.FrameMessageType;
 import com.picpic.server.frame.dto.ws.FrameWsMessage;
 import com.picpic.server.frame.dto.ws.UserProfile;
 import com.picpic.server.frame.service.FrameCellService;
+import com.picpic.server.frame.service.FrameVoteService;
 import com.picpic.server.member.repository.MemberRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -26,6 +28,7 @@ public class FrameActionService {
 	private final FrameCellService frameCellService;
 	private final MemberRepository memberRepository;
 	private final SimpMessagingTemplate template;
+	private final FrameVoteService frameVoteService;
 
 	@Transactional
 	public void handleAction(
@@ -45,17 +48,11 @@ public class FrameActionService {
 		);
 	}
 
-	private FrameActionResponse doVote(String roomId, Long userId, Long newFrameId) {
-		Set<String> voteKeys = redisTemplate.keys("room:" + roomId + ":frame:*:votes");
-		if (voteKeys != null) {
-			for (String key : voteKeys) {
-				redisTemplate.opsForSet().remove(key, userId);
-			}
-		}
-		String newKey = "room:" + roomId + ":frame:" + newFrameId + ":votes";
-		redisTemplate.opsForSet().add(newKey, userId);
-		@SuppressWarnings("unchecked")
-		Set<Object> members = redisTemplate.opsForSet().members(newKey);
+	private FrameActionResponse doVote(String roomId, Long userId, Long frameId) {
+		frameVoteService.vote(roomId, frameId, userId);
+
+		Set<Long> voterIds = frameVoteService.getVoters(roomId, frameId);
+		Set<Object> members = new HashSet<>(voterIds);
 		List<UserProfile> profiles = mapToProfiles(members);
 
 		return new FrameActionResponse(FrameMessageType.VOTE, profiles);
