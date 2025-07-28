@@ -13,6 +13,7 @@ import com.picpic.server.frame.dto.ws.FrameActionResponse;
 import com.picpic.server.frame.dto.ws.FrameMessageType;
 import com.picpic.server.frame.dto.ws.FrameWsMessage;
 import com.picpic.server.frame.dto.ws.UserProfile;
+import com.picpic.server.frame.service.FrameCellService;
 import com.picpic.server.member.repository.MemberRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,7 @@ import lombok.RequiredArgsConstructor;
 public class FrameActionService {
 
 	private final RedisTemplate<String, Object> redisTemplate;
+	private final FrameCellService frameCellService;
 	private final MemberRepository memberRepository;
 	private final SimpMessagingTemplate template;
 
@@ -59,20 +61,31 @@ public class FrameActionService {
 		return new FrameActionResponse(FrameMessageType.VOTE, profiles);
 	}
 
-	private FrameActionResponse doSelect(String roomId, Long userId, Long cellId) {
-		String key = "room:" + roomId + ":cell:" + cellId + ":selections";
-		redisTemplate.opsForSet().add(key, userId);
+	private FrameActionResponse doSelect(String roomId, Long userId, Long frameId) {
+		// 새로 작성한 FrameCellService 사용
+		boolean success = frameCellService.selectCell(roomId, frameId, userId.intValue(), userId);
+		if (!success) {
+			throw new IllegalStateException("이미 선택된 셀입니다.");
+		}
 
-		@SuppressWarnings("unchecked")
-		Set<Object> members = redisTemplate.opsForSet().members(key);
-		List<UserProfile> profiles = mapToProfiles(members);
+		var selectionMap = frameCellService.getAllSelections(roomId, frameId);
+
+		List<UserProfile> profiles = selectionMap.values().stream()
+			.map(memberRepository::findById)
+			.filter(Optional::isPresent)
+			.map(Optional::get)
+			.map(m -> new UserProfile(
+				m.getMemberId(),
+				m.getNickname(),
+				m.getProfileImageUrl()
+			)).toList();
 
 		return new FrameActionResponse(FrameMessageType.SELECT, profiles);
 	}
 
 	private List<UserProfile> mapToProfiles(Set<Object> members) {
 		return members.stream()
-			.map(o -> (Long)o)
+			.map(o -> Long.parseLong(o.toString()))
 			.map(memberRepository::findById)
 			.filter(Optional::isPresent)
 			.map(Optional::get)
