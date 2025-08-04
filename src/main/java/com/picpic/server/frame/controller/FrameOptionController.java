@@ -21,9 +21,9 @@ public class FrameOptionController {
 
 	@GetMapping
 	public ResponseEntity<List<FrameOptionResponse>> getFrameOptions(
-		@PathVariable Long roomId  // 추후 roomId 기반 필터링 로직 추가 예정
+		@PathVariable Long roomId
 	) {
-		List<FrameOptionResponse> options = frameOptionService.getAllFrameOptions();
+		List<FrameOptionResponse> options = frameOptionService.getFrameOptions(roomId);
 		return ResponseEntity.ok(options);
 	}
 }
