@@ -24,3 +24,16 @@ services:
     volumes:
       - ./mysql/data:/var/lib/mysql
       - ./mysql/init:/docker-entrypoint-initdb.d
+  openvidu_container:
+    image: openvidu/openvidu-dev:2.28.0
+    ports:
+      - "4443:4443"
+    environment:
+      - OPENVIDU_SECRET=${OPEN_VIDU_SECRET}
+      - DOMAIN_OR_PUBLIC_IP=localhost
+      - OPENVIDU_WEBHOOK=true
+      - OPENVIDU_WEBHOOK_ENDPOINT=http://host.docker.internal:8080/api/webhooks/openvidu
+      - OPENVIDU_WEBHOOK_EVENTS=["participantJoined","participantLeft"]
+      - "OPENVIDU_WEBHOOK_HEADERS=[\"Authorization: ${OPEN_VIDU_TOKEN}\"]"
+      - OPENVIDU_RECORDING=false
+      - OPENVIDU_CDR=false
