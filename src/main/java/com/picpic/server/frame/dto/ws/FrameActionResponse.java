@@ -27,6 +27,9 @@ public class FrameActionResponse {
 	// 제한 시간 (초)
 	private Integer durationSeconds;
 
+	// 투표 확정 시: 선택된 프레임 ID
+	private Long selectedFrameId;
+
 	// 셀 확정 시: cellIndex → memberId 맵
 	private Map<Integer, Long> cellAssignments;
 }
