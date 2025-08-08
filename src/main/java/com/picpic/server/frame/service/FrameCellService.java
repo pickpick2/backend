@@ -3,14 +3,28 @@ package com.picpic.server.frame.service;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
-import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.picpic.server.frame.dto.ws.FrameActionResponse;
+import com.picpic.server.frame.dto.ws.FrameMessageType;
+import com.picpic.server.frame.dto.ws.FrameWsMessage;
+import com.picpic.server.frame.entity.Frame;
+import com.picpic.server.frame.repository.FrameRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -18,84 +32,154 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class FrameCellService {
 
+	private final SimpMessagingTemplate template;
 	private final RedisTemplate<String, Object> redisTemplate;
+	private final FrameRepository frameRepository;
 
-	private String cellKey(String roomId, Long frameId) {
-		return "frame:" + roomId + ":" + frameId + ":cells";
+	private final ScheduledExecutorService scheduler =
+		Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors());
+
+	private final Map<String, ScheduledFuture<?>> cellTasks = new ConcurrentHashMap<>();
+	private final Map<String, Set<Long>> cellCompletions = new ConcurrentHashMap<>();
+	private final Map<String, Integer> participantCounts = new ConcurrentHashMap<>();
+	private final Map<String, List<Integer>> availableCells = new ConcurrentHashMap<>();
+
+	/**
+	 * 셀 선택 단계 시작: 20초 타이머와 START_CELL 메시지 브로드캐스트
+	 */
+	public void startCellSelection(String roomId, Long frameOption, List<Long> participantIds) {
+		participantCounts.put(roomId, participantIds.size());
+		cellCompletions.put(roomId, ConcurrentHashMap.newKeySet());
+
+		// 프레임의 slotCount 만큼 인덱스 생성 (0부터 slotCount-1)
+		List<Integer> cells = loadCellsForFrame(frameOption);
+		availableCells.put(roomId, new ArrayList<>(cells));
+
+		long now = System.currentTimeMillis();
+		FrameActionResponse payload = FrameActionResponse.builder()
+			.type(FrameMessageType.START_CELL)
+			.startTimeMillis(now)
+			.durationSeconds(20)
+			.build();
+
+		template.convertAndSend(
+			"/topic/room/" + roomId,
+			new FrameWsMessage<>(FrameMessageType.START_CELL, null, payload)
+		);
+
+		ScheduledFuture<?> future = scheduler.schedule(
+			() -> finalizeCellSelection(roomId),
+			20, TimeUnit.SECONDS
+		);
+		cellTasks.put(roomId, future);
 	}
 
-	private String memberKey(String roomId, Long frameId) {
-		return "frame:" + roomId + ":" + frameId + ":members";
-	}
+	/**
+	 * 사용자가 셀을 선택했을 때
+	 */
+	@Transactional
+	public void selectCell(String roomId, Long userId, int cellIndex) {
+		String key = "room:" + roomId + ":cell:" + cellIndex + ":selections";
+		redisTemplate.opsForSet().add(key, userId);
 
-	public boolean selectCell(String roomId, Long frameId, int cellIndex, Long memberId) {
-		HashOperations<String, String, String> ops = redisTemplate.opsForHash();
+		// 중간 상태 업데이트
+		FrameActionResponse mid = FrameActionResponse.builder()
+			.type(FrameMessageType.SELECT)
+			.build();
+		template.convertAndSend(
+			"/topic/room/" + roomId,
+			new FrameWsMessage<>(FrameMessageType.SELECT, null, mid)
+		);
 
-		String cellsKey = cellKey(roomId, frameId);
-		String membersKey = memberKey(roomId, frameId);
+		Set<Long> done = cellCompletions.get(roomId);
+		done.add(userId);
 
-		if (ops.hasKey(cellsKey, String.valueOf(cellIndex))) {
-			return false;
+		if (done.size() == participantCounts.get(roomId)) {
+			cellTasks.get(roomId).cancel(false);
+			finalizeCellSelection(roomId);
 		}
-
-		ops.put(cellsKey, String.valueOf(cellIndex), String.valueOf(memberId));
-		ops.put(membersKey, String.valueOf(memberId), String.valueOf(cellIndex));
-
-		return true;
 	}
 
-	public int getSelectedCount(String roomId, Long frameId) {
-		return redisTemplate.opsForHash().size(cellKey(roomId, frameId)).intValue();
-	}
+	/**
+	 * 셀 배정 확정 및 브로드캐스트
+	 */
+	private synchronized void finalizeCellSelection(String roomId) {
+		if (!participantCounts.containsKey(roomId))
+			return;
 
-	public boolean isAllSelected(String roomId, Long frameId, int slotCount) {
-		return getSelectedCount(roomId, frameId) >= slotCount;
-	}
+		// 1) 자동 배정: 미선택 유저에게 랜덤 셀 할당
+		List<Integer> cells = availableCells.get(roomId);
+		Collections.shuffle(cells);
 
-	public void assignRemaining(String roomId, Long frameId, List<Long> allMemberIds, int slotCount) {
-		HashOperations<String, String, String> ops = redisTemplate.opsForHash();
-		String cellsKey = cellKey(roomId, frameId);
-		String membersKey = memberKey(roomId, frameId);
-
-		Set<String> selectedMemberIds = ops.entries(membersKey).keySet();
-
-		List<Long> remainingMembers = allMemberIds.stream()
-			.filter(mid -> !selectedMemberIds.contains(String.valueOf(mid)))
-			.collect(Collectors.toList());
-
-		Set<String> usedCellIndexes = ops.entries(cellsKey).keySet();
-		List<Integer> availableIndexes = new ArrayList<>();
-		for (int i = 0; i < slotCount; i++) {
-			if (!usedCellIndexes.contains(String.valueOf(i))) {
-				availableIndexes.add(i);
+		List<Long> users = getParticipantIds(roomId);
+		Set<Long> done = cellCompletions.get(roomId);
+		Iterator<Integer> cellIt = cells.iterator();
+		for (Long userId : users) {
+			if (!done.contains(userId) && cellIt.hasNext()) {
+				int idx = cellIt.next();
+				String key = "room:" + roomId + ":cell:" + idx + ":selections";
+				redisTemplate.opsForSet().add(key, userId);
 			}
 		}
 
-		if (availableIndexes.size() < remainingMembers.size()) {
-			throw new IllegalStateException("남은 셀보다 미선택 사용자가 더 많습니다.");
-		}
+		// 2) 최종 매핑 수집
+		Map<Integer, Long> assignments = loadAllCellAssignments(roomId);
 
-		Collections.shuffle(availableIndexes);
+		FrameActionResponse payload = FrameActionResponse.builder()
+			.type(FrameMessageType.CONFIRM_CELL)
+			.cellAssignments(assignments)
+			.build();
 
-		for (int i = 0; i < remainingMembers.size(); i++) {
-			int cellIndex = availableIndexes.get(i);
-			Long memberId = remainingMembers.get(i);
+		template.convertAndSend(
+			"/topic/room/" + roomId,
+			new FrameWsMessage<>(FrameMessageType.CONFIRM_CELL, null, payload)
+		);
 
-			ops.put(cellsKey, String.valueOf(cellIndex), String.valueOf(memberId));
-			ops.put(membersKey, String.valueOf(memberId), String.valueOf(cellIndex));
-		}
+		// 3) 클린업
+		cellTasks.remove(roomId);
+		cellCompletions.remove(roomId);
+		participantCounts.remove(roomId);
+		availableCells.remove(roomId);
 	}
 
-	public Integer getSelectedCellIndex(String roomId, Long frameId, Long memberId) {
-		Object value = redisTemplate.opsForHash().get(memberKey(roomId, frameId), String.valueOf(memberId));
-		return value != null ? Integer.parseInt((String)value) : null;
+	/**
+	 * Frame 엔티티에서 slotCount를 읽어 0..slotCount-1 리스트 생성
+	 */
+	private List<Integer> loadCellsForFrame(Long frameOption) {
+		Frame frame = frameRepository.findById(frameOption)
+			.orElseThrow(() -> new IllegalArgumentException("Invalid frameOption: " + frameOption));
+		return IntStream.range(0, frame.getSlotCount())
+			.boxed()
+			.toList();
 	}
 
-	public Map<Integer, Long> getAllSelections(String roomId, Long frameId) {
-		Map<Object, Object> rawMap = redisTemplate.opsForHash().entries(cellKey(roomId, frameId));
+	/**
+	 * 방(roomId)에 참여한 userId 리스트 조회
+	 */
+	@SuppressWarnings("unchecked")
+	public List<Long> getParticipantIds(String roomId) {
+		String key = "room:" + roomId + ":participants";
+		Set<Object> members = redisTemplate.opsForSet().members(key);
+		if (members == null) {
+			return List.of();
+		}
+		return members.stream()
+			.map(o -> (Long)o)
+			.collect(Collectors.toList());
+	}
+
+	/**
+	 * 각 셀 인덱스별로 Redis에 저장된 단일 선택자를 읽어 Map&lt;cellIndex, userId&gt; 형태로 반환
+	 */
+	private Map<Integer, Long> loadAllCellAssignments(String roomId) {
 		Map<Integer, Long> result = new HashMap<>();
-		for (Map.Entry<Object, Object> entry : rawMap.entrySet()) {
-			result.put(Integer.parseInt((String)entry.getKey()), Long.parseLong((String)entry.getValue()));
+		for (Integer idx : availableCells.get(roomId)) {
+			String key = "room:" + roomId + ":cell:" + idx + ":selections";
+			@SuppressWarnings("unchecked")
+			Set<Object> members = redisTemplate.opsForSet().members(key);
+			if (members != null && !members.isEmpty()) {
+				result.put(idx, (Long)members.iterator().next());
+			}
 		}
 		return result;
 	}
