@@ -41,7 +41,7 @@ class FrameOptionControllerTest {
 			new FrameOptionResponse(1L, "2x2", 4, "url1"),
 			new FrameOptionResponse(2L, "1x4", 4, "url2")
 		);
-		given(frameOptionService.getAllFrameOptions()).willReturn(mockList);
+		given(frameOptionService.getFrameOptions(roomId)).willReturn(mockList);
 
 		// when & then
 		mockMvc.perform(get("/api/room/{roomId}/frames", roomId)
@@ -53,6 +53,6 @@ class FrameOptionControllerTest {
 			.andExpect(jsonPath("$[0].name").value("2x2"))
 			.andExpect(jsonPath("$[1].frameImageUrl").value("url2"));
 
-		then(frameOptionService).should().getAllFrameOptions();
+		then(frameOptionService).should().getFrameOptions(roomId);
 	}
 }
